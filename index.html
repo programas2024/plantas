@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root {
+       :root {
             --primary: #2a9d8f;
             --primary-light: #48cae4;
             --primary-dark: #1d7875;
@@ -43,7 +43,6 @@
             background-color: var(--background);
             color: var(--text-primary);
             line-height: 1.6;
-            padding-top: 0; /* Eliminamos el padding superior */
         }
 
         .container {
@@ -52,28 +51,15 @@
             padding: 0 20px;
         }
 
-        /* Header Styles */
+        /* Header Styles - Mejorado para todas las pantallas */
         header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             padding: 1.2rem 0;
             box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            transition: var(--transition);
-        }
-
-        /* En móviles el header ya no es fijo */
-        @media (max-width: 768px) {
-            header {
-                position: relative;
-                top: auto;
-            }
-            
-            body {
-                padding-top: 0;
-            }
+            position: relative; /* Cambiado de sticky/fixed a relative */
+            width: 100%;
+            z-index: 100;
         }
 
         .header-content {
@@ -284,7 +270,6 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             position: relative;
-            margin-top: 0; /* Aseguramos que no hay margen superior que cause superposición */
         }
 
         #map {
@@ -633,7 +618,7 @@
             opacity: 1;
         }
 
-        /* Responsive Design - PRIORIDAD para menos de 500px */
+        /* Responsive Design - PRIORIDAD para todas las pantallas */
         @media (max-width: 500px) {
             .container {
                 padding: 0 12px;
@@ -682,7 +667,6 @@
             
             .map-container {
                 height: 350px;
-                margin-top: 0; /* Aseguramos que no hay margen superior */
             }
             
             .plants-container {
@@ -745,7 +729,6 @@
             
             .map-container {
                 height: 400px;
-                margin-top: 0; /* Aseguramos que no hay margen superior */
             }
             
             .plants-container {
