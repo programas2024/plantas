@@ -43,6 +43,7 @@
             background-color: var(--background);
             color: var(--text-primary);
             line-height: 1.6;
+            padding-top: 0; /* Eliminamos el padding superior */
         }
 
         .container {
@@ -60,6 +61,19 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            transition: var(--transition);
+        }
+
+        /* En móviles el header ya no es fijo */
+        @media (max-width: 768px) {
+            header {
+                position: relative;
+                top: auto;
+            }
+            
+            body {
+                padding-top: 0;
+            }
         }
 
         .header-content {
@@ -270,6 +284,7 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             position: relative;
+            margin-top: 0; /* Aseguramos que no hay margen superior que cause superposición */
         }
 
         #map {
@@ -667,6 +682,7 @@
             
             .map-container {
                 height: 350px;
+                margin-top: 0; /* Aseguramos que no hay margen superior */
             }
             
             .plants-container {
@@ -729,6 +745,7 @@
             
             .map-container {
                 height: 400px;
+                margin-top: 0; /* Aseguramos que no hay margen superior */
             }
             
             .plants-container {
@@ -1395,7 +1412,7 @@
             
             plantsContainer.innerHTML = '';
             
-            plants.forEach((plant, index) => {
+            plants.forEach((plant, index) {
                 const plantCard = document.createElement('div');
                 plantCard.className = 'plant-card fade-in';
                 plantCard.style.animationDelay = `${index * 0.1}s`;
