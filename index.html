@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantas Medicinales</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #000000;
+            --primary-dark: #1d7875;
+            --secondary: #e9c46a;
+            --accent: #e76f51;
+            --background: #f8f9fa;
+            --card-background: #ffffff;
+            --text-primary: #264653;
+            --text-secondary: #6c757d;
+            --border: #dee2e6;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 12px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .search-box {
+            display: flex;
+            flex: 1;
+            background: white;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-button {
+            background: var(--secondary);
+            border: none;
+            padding: 0 20px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .search-button:hover {
+            background: #d9b45a;
+        }
+
+        .filter-toggle {
+            background: white;
+            color: var(--primary);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+        }
+
+        .filter-toggle:hover {
+            background: #f0f0f0;
+        }
+
+        .advanced-filters {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            box-shadow: var(--shadow);
+            transform: scaleY(0);
+            transform-origin: top;
+            height: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .advanced-filters.active {
+            transform: scaleY(1);
+            height: auto;
+            opacity: 1;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .filter-group select {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        main {
+            padding: 2rem 0;
+        }
+
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 992px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .map-container {
+            height: 600px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .plants-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .plant-card {
+            background: var(--card-background);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .plant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .plant-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .plant-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--accent);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .plant-info {
+            padding: 20px;
+        }
+
+        .plant-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .plant-scientific {
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .plant-properties {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .property-tag {
+            background: rgba(42, 157, 143, 0.15);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .error-message {
+            color: var(--accent);
+        }
+
+        .loader {
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        footer {
+            background: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-leaf"></i>
+                    <span>Plantas Medicinales</span>
+                </div>
+                
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Buscar plantas medicinales...">
+                        <button id="searchButton" class="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    
+                    <button id="filterToggle" class="filter-toggle">
+                        <i class="fas fa-filter"></i>
+                        <span class="filter-text">Filtros</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="advancedFilters" class="advanced-filters">
+                <div class="filter-group">
+                    <label for="propertyFilter">Propiedad medicinal</label>
+                    <select id="propertyFilter">
+                        <option value="">Todas las propiedades</option>
+                        <option value="Digestiva">Digestiva</option>
+                        <option value="Relajante">Relajante</option>
+                        <option value="Antiinflamatoria">Antiinflamatoria</option>
+                        <option value="Analgésica">Analgésica</option>
+                        <option value="Cicatrizante">Cicatrizante</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="zoneFilter">Región</label>
+                    <select id="zoneFilter">
+                        <option value="">Todas las regiones</option>
+                        <option value="norte">Norte</option>
+                        <option value="sur">Sur</option>
+                        <option value="este">Este</option>
+                        <option value="oeste">Oeste</option>
+                        <option value="Global">Global</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="altitudeFilter">Altitud</label>
+                    <select id="altitudeFilter">
+                        <option value="">Todos los rangos</option>
+                        <option value="0-500">0-500 m</option>
+                        <option value="500-1500">500-1500 m</option>
+                        <option value="1500-3000">1500-3000 m</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="climateFilter">Clima</label>
+                    <select id="climateFilter">
+                        <option value="">Todos los climas</option>
+                        <option value="templado">Templado</option>
+                        <option value="tropical">Tropical</option>
+                        <option value="seco">Seco</option>
+                        <option value="montañoso">Montañoso</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="content-wrapper">
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+            
+            <div id="plantsContainer" class="plants-container">
+                <div class="status-message">
+                    <i class="fas fa-spinner loader"></i> Cargando plantas...
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <p>Explora el mundo de las plantas medicinales y sus propiedades curativas</p>
+                <div class="footer-links">
+                    <a href="#"><i class="fas fa-info-circle"></i> Acerca de</a>
+                    <a href="#"><i class="fas fa-envelope"></i> Contacto</a>
+                    <a href="#"><i class="fas fa-shield-alt"></i> Privacidad</a>
+                </div>
+                <p>© 2023 Plantas Medicinales. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://dltnrcmhopkfgkmupjbl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
+        
+        // Inicializar Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Variables globales
+        let map, userLocationMarker, userLocation;
+        let allPlants = [];
+        let plantMarkers = [];
+
+        // Función principal para buscar plantas
+        async function searchPlants(query = '', filters = {}) {
+            const plantsContainer = document.getElementById('plantsContainer');
+            plantsContainer.innerHTML = '<div class="status-message"><i class="fas fa-spinner loader"></i> Buscando plantas...</div>';
+            
+            try {
+                // Primero intentamos cargar desde Supabase
+                let supabaseQuery = supabase
+                    .from('medicinal_plants')
+                    .select('*');
+                
+                // Aplicar filtro de búsqueda de texto
+                if (query && query.trim() !== '') {
+                    supabaseQuery = supabaseQuery.or(`common_name.ilike.%${query}%,scientific_name.ilike.%${query}%`);
+                }
+                
+                // Aplicar filtros adicionales solo si tienen valor
+                if (filters.region && filters.region !== '') {
+                    supabaseQuery = supabaseQuery.eq('region', filters.region);
+                }
+                
+                if (filters.altitude && filters.altitude !== '') {
+                    supabaseQuery = supabaseQuery.eq('altitude_range', filters.altitude);
+                }
+                
+                if (filters.property && filters.property !== '') {
+                    // Para propiedades, usamos el operador de contención para arrays
+                    supabaseQuery = supabaseQuery.contains('properties', [filters.property]);
+                }
+                
+                if (filters.climate && filters.climate !== '') {
+                    // Para zonas climáticas, también usamos el operador de contención para arrays
+                    supabaseQuery = supabaseQuery.contains('climate_zones', [filters.climate]);
+                }
+                
+                console.log('Ejecutando consulta con filtros:', filters);
+                
+                const { data: plants, error } = await supabaseQuery;
+                
+                if (error) {
+                    console.error('Error de Supabase:', error);
+                    throw error;
+                }
+                
+                if (plants && plants.length > 0) {
+                    allPlants = plants;
+                    displayPlants(allPlants);
+                    updateMapWithPlants(allPlants);
+                    
+                    // Mostrar confetti si hay resultados
+                    if (plants.length > 0) {
+                        confetti({
+                            particleCount: 100,
+                            spread: 70,
+                            origin: { y: 0.6 }
+                        });
+                    }
+                } else {
+                    plantsContainer.innerHTML = '<div class="status-message">No se encontraron plantas. Intenta con otros términos de búsqueda.</div>';
+                    allPlants = [];
+                    updateMapWithPlants([]);
+                }
+            } catch (error) {
+                console.error('Error buscando plantas:', error);
+                plantsContainer.innerHTML = '<div class="status-message error-message">Error al conectar con la base de datos. Cargando plantas de ejemplo...</div>';
+                
+                // Mostrar plantas de ejemplo como último recurso
+                setTimeout(() => {
+                    loadExamplePlants();
+                }, 2000);
+            }
+        }
+
+        // Cargar plantas de ejemplo si Supabase falla
+        function loadExamplePlants() {
+            const examplePlants = [
+                {
+                    id: 1,
+                    common_name: "Manzanilla",
+                    scientific_name: "Matricaria chamomilla",
+                    image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
+                    properties: ["Digestiva", "Relajante", "Antiinflamatoria"],
+                    distribution: "Amplia distribución en Europa y Asia",
+                    region: "norte",
+                    altitude_range: "500-1500",
+                    climate_zones: ["templado"],
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: 2,
+                    common_name: "Menta",
+                    scientific_name: "Mentha spicata",
+                    image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
+                    properties: ["Digestiva", "Refrescante", "Analgésica"],
+                    distribution: "Regiones templadas de todo el mundo",
+                    region: "sur",
+                    altitude_range: "0-500",
+                    climate_zones: ["templado"],
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: 3,
+                    common_name: "Aloe Vera",
+                    scientific_name: "Aloe barbadensis miller",
+                    image_url: "https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3",
+                    properties: ["Cicatrizante", "Hidratante", "Antiinflamatoria"],
+                    distribution: "Regiones tropicales y subtropicales",
+                    region: "este",
+                    altitude_range: "0-500",
+                    climate_zones: ["tropical"],
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: 4,
+                    common_name: "Romero",
+                    scientific_name: "Rosmarinus officinalis",
+                    image_url: "https://images.unsplash.com/photo-1512237798647-5de4c1f739c3?ixlib=rb-4.0.3",
+                    properties: ["Estimulante", "Antiinflamatoria", "Digestiva"],
+                    distribution: "Región mediterránea",
+                    region: "oeste",
+                    altitude_range: "0-500",
+                    climate_zones: ["templado", "seco"],
+                    created_at: new Date().toISOString()
+                },
+                {
+                    id: 5,
+                    common_name: "Lavanda",
+                    scientific_name: "Lavandula angustifolia",
+                    image_url: "https://images.unsplash.com/photo-1561071985-10e48d132436?ixlib=rb-4.0.3",
+                    properties: ["Relajante", "Antiséptica", "Analgésica"],
+                    distribution: "Región mediterránea",
+                    region: "norte",
+                    altitude_range: "500-1500",
+                    climate_zones: ["templado"],
+                    created_at: new Date().toISOString()
+                }
+            ];
+            
+            allPlants = examplePlants;
+            displayPlants(examplePlants);
+            updateMapWithPlants(examplePlants);
+        }
+
+        // Función para mostrar plantas en la interfaz
+        function displayPlants(plants) {
+            const plantsContainer = document.getElementById('plantsContainer');
+            
+            if (plants.length === 0) {
+                plantsContainer.innerHTML = '<div class="status-message">No se encontraron plantas que coincidan con tu búsqueda.</div>';
+                return;
+            }
+            
+            plantsContainer.innerHTML = '';
+            
+            plants.forEach(plant => {
+                const plantCard = document.createElement('div');
+                plantCard.className = 'plant-card fade-in';
+                plantCard.onclick = () => showPlantDetails(plant);
+                
+                const imageUrl = plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3';
+                
+                plantCard.innerHTML = `
+                    <div class="plant-image" style="background-image: url('${imageUrl}')">
+                        <div class="plant-badge">Medicinal</div>
+                    </div>
+                    <div class="plant-info">
+                        <div class="plant-name">${plant.common_name || 'Planta sin nombre común'}</div>
+                        <div class="plant-scientific">${plant.scientific_name || 'Nombre científico no disponible'}</div>
+                        <div class="plant-properties">
+                            ${plant.properties && Array.isArray(plant.properties) ? 
+                                plant.properties.map(prop => `<span class="property-tag">${prop}</span>`).join('') : 
+                                '<span class="property-tag">Medicinal</span>'
+                            }
+                        </div>
+                    </div>
+                `;
+                
+                plantsContainer.appendChild(plantCard);
+                
+                // Hacer que las tarjetas aparezcan con animación
+                setTimeout(() => {
+                    plantCard.style.opacity = '1';
+                }, 100);
+            });
+        }
+
+        // Mostrar detalles de la planta
+        function showPlantDetails(plant) {
+            // Crear una copia del objeto para evitar problemas con caracteres especiales
+            const plantCopy = {...plant};
+            
+            Swal.fire({
+                title: plant.common_name || 'Planta Medicinal',
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>Nombre científico:</strong> ${plant.scientific_name || 'No disponible'}</p>
+                        <p><strong>Propiedades:</strong> ${plant.properties ? (Array.isArray(plant.properties) ? plant.properties.join(', ') : plant.properties) : 'Medicinal'}</p>
+                        <p><strong>Distribución:</strong> ${plant.distribution || 'No disponible'}</p>
+                        <p><strong>Región:</strong> ${plant.region || 'No especificada'}</p>
+                        <p><strong>Rango de altitud:</strong> ${plant.altitude_range || 'No especificado'}</p>
+                        <p><strong>Zonas climáticas:</strong> ${plant.climate_zones ? (Array.isArray(plant.climate_zones) ? plant.climate_zones.join(', ') : plant.climate_zones) : 'No especificado'}</p>
+                        ${plant.description ? `<p><strong>Descripción:</strong> ${plant.description}</p>` : ''}
+                        ${plant.medicinal_uses ? `<p><strong>Usos medicinales:</strong> ${plant.medicinal_uses}</p>` : ''}
+                        ${plant.preparation_methods ? `<p><strong>Métodos de preparación:</strong> ${plant.preparation_methods}</p>` : ''}
+                        ${plant.precautions ? `<p><strong>Precauciones:</strong> ${plant.precautions}</p>` : ''}
+                    </div>
+                `,
+                imageUrl: plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
+                imageWidth: 300,
+                imageHeight: 200,
+                imageAlt: plant.common_name,
+                confirmButtonText: 'Cerrar',
+                background: 'var(--card-background)',
+                color: 'var(--text-primary)',
+                confirmButtonColor: 'var(--primary)',
+                width: '700px'
+            });
+        }
+
+        // Inicializar el mapa
+        function initMap() {
+            map = L.map('map').setView([40.416775, -3.703790], 5);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            getUserLocation();
+        }
+
+        // Obtener la ubicación del usuario
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        map.setView([userLocation.lat, userLocation.lng], 10);
+                        
+                        if (userLocationMarker) {
+                            map.removeLayer(userLocationMarker);
+                        }
+                        
+                        userLocationMarker = L.marker([userLocation.lat, userLocation.lng])
+                            .addTo(map)
+                            .bindPopup('<b>Tu ubicación actual</b>')
+                            .openPopup();
+                            
+                        searchPlants();
+                    },
+                    function(error) {
+                        console.log('No se pudo obtener tu ubicación. Usando ubicación por defecto.');
+                        searchPlants();
+                    },
+                    { timeout: 10000 }
+                );
+            } else {
+                console.log('La geolocalización no es compatible con tu navegador.');
+                searchPlants();
+            }
+        }
+
+        // Actualizar el mapa con las plantas
+        function updateMapWithPlants(plants) {
+            // Limpiar marcadores anteriores (excepto el del usuario)
+            plantMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            plantMarkers = [];
+            
+            const plantIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+            
+            plants.forEach(plant => {
+                const offsetLat = (Math.random() - 0.5) * 0.5;
+                const offsetLng = (Math.random() - 0.5) * 0.5;
+                
+                const plantLat = userLocation ? userLocation.lat + offsetLat : 40.41 + offsetLat;
+                const plantLng = userLocation ? userLocation.lng + offsetLng : -3.70 + offsetLng;
+                
+                const marker = L.marker([plantLat, plantLng], {icon: plantIcon}).addTo(map);
+                
+                // Crear un botón personalizado para el popup
+                const popupContent = document.createElement('div');
+                popupContent.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 5px; color: #2a9d8f; font-size: 1.1rem;">${plant.common_name || 'Planta medicinal'}</div>
+                    <div><i>${plant.scientific_name || 'Nombre científico no disponible'}</i></div>
+                    <button style="margin-top: 8px; padding: 5px 10px; background: #2a9d8f; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Ver detalles
+                    </button>
+                `;
+                
+                const button = popupContent.querySelector('button');
+                button.onclick = (e) => {
+                    e.stopPropagation();
+                    showPlantDetails(plant);
+                };
+                
+                marker.bindPopup(popupContent);
+                plantMarkers.push(marker);
+            });
+        }
+
+        // Inicializar la aplicación
+        window.onload = function() {
+            initMap();
+            
+            // Toggle de filtros avanzados
+            const filterToggle = document.getElementById('filterToggle');
+            const advancedFilters = document.getElementById('advancedFilters');
+            
+            filterToggle.addEventListener('click', function() {
+                advancedFilters.classList.toggle('active');
+                
+                if (advancedFilters.classList.contains('active')) {
+                    filterToggle.innerHTML = '<i class="fas fa-times"></i> <span class="filter-text">Cerrar</span>';
+                } else {
+                    filterToggle.innerHTML = '<i class="fas fa-filter"></i> <span class="filter-text">Filtros</span>';
+                }
+            });
+            
+            // Event listeners para búsqueda
+            const searchButton = document.getElementById('searchButton');
+            const searchInput = document.getElementById('searchInput');
+            
+            searchButton.addEventListener('click', function() {
+                performSearch();
+            });
+            
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // Función para realizar la búsqueda con todos los filtros
+            function performSearch() {
+                const query = searchInput.value;
+                const filters = {
+                    property: document.getElementById('propertyFilter').value,
+                    region: document.getElementById('zoneFilter').value,
+                    altitude: document.getElementById('altitudeFilter').value,
+                    climate: document.getElementById('climateFilter').value
+                };
+                
+                // Depuración: mostrar los valores de los filtros
+                console.log('Buscando con:', { query, filters });
+                
+                searchPlants(query, filters);
+            }
+            
+            // Event listeners para filtros
+            document.getElementById('zoneFilter').addEventListener('change', performSearch);
+            document.getElementById('altitudeFilter').addEventListener('change', performSearch);
+            document.getElementById('propertyFilter').addEventListener('change', performSearch);
+            document.getElementById('climateFilter').addEventListener('change', performSearch);
+            
+            // Efectos de aparición para elementos
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(el => {
+                el.style.opacity = '0';
+            });
+            
+            setTimeout(() => {
+                fadeElements.forEach(el => {
+                    el.style.opacity = '1';
+                    
+                });
+            }, 100);
+        };
+    </script>
+</body>
+</html>
