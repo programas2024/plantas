@@ -8,12 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #000000;
+            --primary: #2a9d8f;
             --primary-dark: #1d7875;
             --secondary: #e9c46a;
             --accent: #e76f51;
@@ -366,6 +365,9 @@
                         <option value="Antiinflamatoria">Antiinflamatoria</option>
                         <option value="Analgésica">Analgésica</option>
                         <option value="Cicatrizante">Cicatrizante</option>
+                        <option value="Antiséptica">Antiséptica</option>
+                        <option value="Expectorante">Expectorante</option>
+                        <option value="Diurética">Diurética</option>
                     </select>
                 </div>
                 
@@ -377,7 +379,7 @@
                         <option value="sur">Sur</option>
                         <option value="este">Este</option>
                         <option value="oeste">Oeste</option>
-                        <option value="Global">Global</option>
+                        <option value="centro">Centro</option>
                     </select>
                 </div>
                 
@@ -399,6 +401,7 @@
                         <option value="tropical">Tropical</option>
                         <option value="seco">Seco</option>
                         <option value="montañoso">Montañoso</option>
+                        <option value="mediterráneo">Mediterráneo</option>
                     </select>
                 </div>
             </div>
@@ -434,69 +437,182 @@
     </footer>
 
     <script>
-        // Configuración de Supabase
-        const SUPABASE_URL = 'https://dltnrcmhopkfgkmupjbl.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
-        
-        // Inicializar Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
         // Variables globales
         let map, userLocationMarker, userLocation;
         let allPlants = [];
         let plantMarkers = [];
+        
+        // Base de datos local de plantas medicinales
+        const plantasMedicinales = [
+            {
+                id: 1,
+                common_name: "Manzanilla",
+                scientific_name: "Matricaria chamomilla",
+                image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
+                properties: ["Digestiva", "Relajante", "Antiinflamatoria"],
+                distribution: "Amplia distribución en Europa y Asia",
+                region: "norte",
+                altitude_range: "500-1500",
+                climate_zones: ["templado"],
+                description: "La manzanilla es conocida por sus propiedades calmantes y se utiliza comúnmente para aliviar problemas digestivos y promover la relajación.",
+                medicinal_uses: "Infusión para problemas digestivos, ansiedad e irritaciones de la piel.",
+                preparation_methods: "Infusión con 1 cucharada de flores secas por taza de agua hirviendo, dejar reposar 5 minutos.",
+                precautions: "Puede causar reacciones alérgicas en personas sensibles a las plantas de la familia de las margaritas."
+            },
+            {
+                id: 2,
+                common_name: "Menta",
+                scientific_name: "Mentha spicata",
+                image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
+                properties: ["Digestiva", "Refrescante", "Analgésica"],
+                distribution: "Regiones templadas de todo el mundo",
+                region: "sur",
+                altitude_range: "0-500",
+                climate_zones: ["templado"],
+                description: "La menta es una hierba aromática muy popular por su efecto refrescante y su capacidad para aliviar problemas digestivos.",
+                medicinal_uses: "Alivio de indigestión, náuseas, dolor de cabeza y congestión respiratoria.",
+                preparation_methods: "Infusión con hojas frescas o secas, inhalación de vapores para congestión.",
+                precautions: "Evitar en niños pequeños y en casos de reflujo gastroesofágico severo."
+            },
+            {
+                id: 3,
+                common_name: "Aloe Vera",
+                scientific_name: "Aloe barbadensis miller",
+                image_url: "https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3",
+                properties: ["Cicatrizante", "Hidratante", "Antiinflamatoria"],
+                distribution: "Regiones tropicales y subtropicales",
+                region: "este",
+                altitude_range: "0-500",
+                climate_zones: ["tropical"],
+                description: "El aloe vera es conocido por sus propiedades regenerativas para la piel y su capacidad para aliviar quemaduras y irritaciones.",
+                medicinal_uses: "Quemaduras, heridas, psoriasis, acné y problemas digestivos en forma de jugo.",
+                preparation_methods: "Aplicación directa del gel de la hoja sobre la piel, o consumo del jugo para problemas digestivos.",
+                precautions: "No consumir la parte verde de la hoja, solo el gel transparente interior."
+            },
+            {
+                id: 4,
+                common_name: "Romero",
+                scientific_name: "Rosmarinus officinalis",
+                image_url: "https://images.unsplash.com/photo-1512237798647-5de4c1f739c3?ixlib=rb-4.0.3",
+                properties: ["Estimulante", "Antiinflamatoria", "Digestiva"],
+                distribution: "Región mediterránea",
+                region: "oeste",
+                altitude_range: "0-500",
+                climate_zones: ["templado", "seco"],
+                description: "El romero es un arbusto aromático con propiedades estimulantes para la circulación y la memoria.",
+                medicinal_uses: "Mejora de la memoria y concentración, alivio de dolores musculares y problemas digestivos.",
+                preparation_methods: "Infusión, tintura, aceite esencial para masajes.",
+                precautions: "Evitar durante el embarazo y en personas con epilepsia."
+            },
+            {
+                id: 5,
+                common_name: "Lavanda",
+                scientific_name: "Lavandula angustifolia",
+                image_url: "https://images.unsplash.com/photo-1561071985-10e48d132436?ixlib=rb-4.0.3",
+                properties: ["Relajante", "Antiséptica", "Analgésica"],
+                distribution: "Región mediterránea",
+                region: "norte",
+                altitude_range: "500-1500",
+                climate_zones: ["templado"],
+                description: "La lavanda es conocida por su aroma calmante y sus propiedades relajantes y antisépticas.",
+                medicinal_uses: "Ansiedad, insomnio, dolor de cabeza, picaduras de insectos y pequeñas heridas.",
+                preparation_methods: "Infusión, aceite esencial, bolsitas aromáticas para colocar bajo la almohada.",
+                precautions: "El aceite esencial debe diluirse antes de aplicar sobre la piel."
+            },
+            {
+                id: 6,
+                common_name: "Jengibre",
+                scientific_name: "Zingiber officinale",
+                image_url: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?ixlib=rb-4.0.3",
+                properties: ["Digestiva", "Antiinflamatoria", "Analgésica"],
+                distribution: "Originario del sudeste asiático, cultivado en regiones tropicales",
+                region: "este",
+                altitude_range: "0-500",
+                climate_zones: ["tropical"],
+                description: "El jengibre es una raíz con potentes propiedades antiinflamatorias y digestivas.",
+                medicinal_uses: "Náuseas, indigestión, artritis, dolor muscular y resfriados.",
+                preparation_methods: "Té, tintura, polvo en cápsulas, aplicación tópica para dolores musculares.",
+                precautions: "Puede interferir con anticoagulantes, usar con precaución en personas con cálculos biliares."
+            },
+            {
+                id: 7,
+                common_name: "Eucalipto",
+                scientific_name: "Eucalyptus globulus",
+                image_url: "https://images.unsplash.com/photo-1512237630985-4a8f8fe8d895?ixlib=rb-4.0.3",
+                properties: ["Expectorante", "Antiséptica", "Descongestionante"],
+                distribution: "Originario de Australia, cultivado en muchas regiones del mundo",
+                region: "sur",
+                altitude_range: "500-1500",
+                climate_zones: ["templado", "mediterráneo"],
+                description: "El eucalipto es conocido por sus propiedades descongestionantes y antisépticas para las vías respiratorias.",
+                medicinal_uses: "Congestión nasal, bronquitis, sinusitis, asma y como repelente de insectos.",
+                preparation_methods: "Inhalación de vapores, ungüentos tópicos, caramelos para la garganta.",
+                precautions: "No ingerir el aceite esencial puro, puede ser tóxico."
+            },
+            {
+                id: 8,
+                common_name: "Caléndula",
+                scientific_name: "Calendula officinalis",
+                image_url: "https://images.unsplash.com/photo-1581992344945-5d39a6b7eb5e?ixlib=rb-4.0.3",
+                properties: ["Cicatrizante", "Antiinflamatoria", "Antiséptica"],
+                distribution: "Regiones templadas de todo el mundo",
+                region: "centro",
+                altitude_range: "0-500",
+                climate_zones: ["templado"],
+                description: "La caléndula es conocida por sus propiedades curativas para la piel y sus flores de vibrante color naranja.",
+                medicinal_uses: "Heridas, quemaduras, eczema, dermatitis del pañal y irritaciones de la piel.",
+                preparation_methods: "Ungüentos, cremas, aceite infusionado y cataplasmas.",
+                precautions: "Personas alérgicas a las asteráceas pueden experimentar reacciones."
+            }
+        ];
 
         // Función principal para buscar plantas
-        async function searchPlants(query = '', filters = {}) {
+        function searchPlants(query = '', filters = {}) {
             const plantsContainer = document.getElementById('plantsContainer');
             plantsContainer.innerHTML = '<div class="status-message"><i class="fas fa-spinner loader"></i> Buscando plantas...</div>';
             
-            try {
-                // Primero intentamos cargar desde Supabase
-                let supabaseQuery = supabase
-                    .from('medicinal_plants')
-                    .select('*');
+            // Simular una pequeña demora para la experiencia de usuario
+            setTimeout(() => {
+                let filteredPlants = [...plantasMedicinales];
                 
                 // Aplicar filtro de búsqueda de texto
                 if (query && query.trim() !== '') {
-                    supabaseQuery = supabaseQuery.or(`common_name.ilike.%${query}%,scientific_name.ilike.%${query}%`);
+                    const searchTerm = query.toLowerCase();
+                    filteredPlants = filteredPlants.filter(plant => 
+                        plant.common_name.toLowerCase().includes(searchTerm) || 
+                        plant.scientific_name.toLowerCase().includes(searchTerm) ||
+                        (plant.properties && plant.properties.some(prop => prop.toLowerCase().includes(searchTerm)))
+                    );
                 }
                 
-                // Aplicar filtros adicionales solo si tienen valor
+                // Aplicar filtros adicionales
                 if (filters.region && filters.region !== '') {
-                    supabaseQuery = supabaseQuery.eq('region', filters.region);
+                    filteredPlants = filteredPlants.filter(plant => plant.region === filters.region);
                 }
                 
                 if (filters.altitude && filters.altitude !== '') {
-                    supabaseQuery = supabaseQuery.eq('altitude_range', filters.altitude);
+                    filteredPlants = filteredPlants.filter(plant => plant.altitude_range === filters.altitude);
                 }
                 
                 if (filters.property && filters.property !== '') {
-                    // Para propiedades, usamos el operador de contención para arrays
-                    supabaseQuery = supabaseQuery.contains('properties', [filters.property]);
+                    filteredPlants = filteredPlants.filter(plant => 
+                        plant.properties && plant.properties.includes(filters.property)
+                    );
                 }
                 
                 if (filters.climate && filters.climate !== '') {
-                    // Para zonas climáticas, también usamos el operador de contención para arrays
-                    supabaseQuery = supabaseQuery.contains('climate_zones', [filters.climate]);
+                    filteredPlants = filteredPlants.filter(plant => 
+                        plant.climate_zones && plant.climate_zones.includes(filters.climate)
+                    );
                 }
                 
-                console.log('Ejecutando consulta con filtros:', filters);
-                
-                const { data: plants, error } = await supabaseQuery;
-                
-                if (error) {
-                    console.error('Error de Supabase:', error);
-                    throw error;
-                }
-                
-                if (plants && plants.length > 0) {
-                    allPlants = plants;
+                if (filteredPlants.length > 0) {
+                    allPlants = filteredPlants;
                     displayPlants(allPlants);
                     updateMapWithPlants(allPlants);
                     
                     // Mostrar confetti si hay resultados
-                    if (plants.length > 0) {
+                    if (filteredPlants.length > 0) {
                         confetti({
                             particleCount: 100,
                             spread: 70,
@@ -508,85 +624,7 @@
                     allPlants = [];
                     updateMapWithPlants([]);
                 }
-            } catch (error) {
-                console.error('Error buscando plantas:', error);
-                plantsContainer.innerHTML = '<div class="status-message error-message">Error al conectar con la base de datos. Cargando plantas de ejemplo...</div>';
-                
-                // Mostrar plantas de ejemplo como último recurso
-                setTimeout(() => {
-                    loadExamplePlants();
-                }, 2000);
-            }
-        }
-
-        // Cargar plantas de ejemplo si Supabase falla
-        function loadExamplePlants() {
-            const examplePlants = [
-                {
-                    id: 1,
-                    common_name: "Manzanilla",
-                    scientific_name: "Matricaria chamomilla",
-                    image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
-                    properties: ["Digestiva", "Relajante", "Antiinflamatoria"],
-                    distribution: "Amplia distribución en Europa y Asia",
-                    region: "norte",
-                    altitude_range: "500-1500",
-                    climate_zones: ["templado"],
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 2,
-                    common_name: "Menta",
-                    scientific_name: "Mentha spicata",
-                    image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
-                    properties: ["Digestiva", "Refrescante", "Analgésica"],
-                    distribution: "Regiones templadas de todo el mundo",
-                    region: "sur",
-                    altitude_range: "0-500",
-                    climate_zones: ["templado"],
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 3,
-                    common_name: "Aloe Vera",
-                    scientific_name: "Aloe barbadensis miller",
-                    image_url: "https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3",
-                    properties: ["Cicatrizante", "Hidratante", "Antiinflamatoria"],
-                    distribution: "Regiones tropicales y subtropicales",
-                    region: "este",
-                    altitude_range: "0-500",
-                    climate_zones: ["tropical"],
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 4,
-                    common_name: "Romero",
-                    scientific_name: "Rosmarinus officinalis",
-                    image_url: "https://images.unsplash.com/photo-1512237798647-5de4c1f739c3?ixlib=rb-4.0.3",
-                    properties: ["Estimulante", "Antiinflamatoria", "Digestiva"],
-                    distribution: "Región mediterránea",
-                    region: "oeste",
-                    altitude_range: "0-500",
-                    climate_zones: ["templado", "seco"],
-                    created_at: new Date().toISOString()
-                },
-                {
-                    id: 5,
-                    common_name: "Lavanda",
-                    scientific_name: "Lavandula angustifolia",
-                    image_url: "https://images.unsplash.com/photo-1561071985-10e48d132436?ixlib=rb-4.0.3",
-                    properties: ["Relajante", "Antiséptica", "Analgésica"],
-                    distribution: "Región mediterránea",
-                    region: "norte",
-                    altitude_range: "500-1500",
-                    climate_zones: ["templado"],
-                    created_at: new Date().toISOString()
-                }
-            ];
-            
-            allPlants = examplePlants;
-            displayPlants(examplePlants);
-            updateMapWithPlants(examplePlants);
+            }, 500); // Pequeña demora para simular procesamiento
         }
 
         // Función para mostrar plantas en la interfaz
@@ -634,9 +672,6 @@
 
         // Mostrar detalles de la planta
         function showPlantDetails(plant) {
-            // Crear una copia del objeto para evitar problemas con caracteres especiales
-            const plantCopy = {...plant};
-            
             Swal.fire({
                 title: plant.common_name || 'Planta Medicinal',
                 html: `
@@ -800,9 +835,6 @@
                     climate: document.getElementById('climateFilter').value
                 };
                 
-                // Depuración: mostrar los valores de los filtros
-                console.log('Buscando con:', { query, filters });
-                
                 searchPlants(query, filters);
             }
             
@@ -821,7 +853,6 @@
             setTimeout(() => {
                 fadeElements.forEach(el => {
                     el.style.opacity = '1';
-                    
                 });
             }, 100);
         };
