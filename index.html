@@ -168,6 +168,26 @@
             transform: translateY(-2px);
         }
 
+        .help-btn {
+            background: var(--primary-light);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .help-btn:hover {
+            background: #3ab7d8;
+            transform: translateY(-2px);
+        }
+
         /* Advanced Filters */
         .advanced-filters {
             background: white;
@@ -597,8 +617,102 @@
             opacity: 1;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
+        /* Responsive Design - PRIORIDAD para menos de 500px */
+        @media (max-width: 500px) {
+            .container {
+                padding: 0 12px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .logo {
+                font-size: 1.3rem;
+                justify-content: center;
+            }
+            
+            .search-container {
+                flex-direction: column;
+                max-width: 100%;
+                gap: 10px;
+            }
+            
+            .search-box {
+                flex-direction: column;
+                border-radius: var(--radius);
+            }
+            
+            .search-input {
+                border-radius: var(--radius) var(--radius) 0 0;
+            }
+            
+            .search-button {
+                border-radius: 0 0 var(--radius) var(--radius);
+                padding: 12px;
+            }
+            
+            .filter-toggle, .add-plant-btn, .help-btn {
+                width: 100%;
+                justify-content: center;
+                margin-bottom: 5px;
+            }
+            
+            .content-wrapper {
+                gap: 20px;
+            }
+            
+            .map-container {
+                height: 350px;
+            }
+            
+            .plants-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .plant-info {
+                padding: 18px;
+            }
+            
+            .plant-name {
+                font-size: 1.2rem;
+            }
+            
+            .plant-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .advanced-filters {
+                grid-template-columns: 1fr;
+                padding: 20px 15px;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .footer-content p {
+                font-size: 0.9rem;
+            }
+            
+            /* Ajustes específicos para móviles pequeños */
+            .map-legend {
+                bottom: 10px;
+                left: 10px;
+                padding: 10px;
+                font-size: 0.8rem;
+            }
+            
+            .status-message {
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 768px) and (min-width: 501px) {
             .header-content {
                 flex-direction: column;
                 align-items: stretch;
@@ -617,7 +731,7 @@
             }
             
             .plants-container {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .plant-form {
@@ -625,49 +739,11 @@
             }
             
             .advanced-filters {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
             }
             
             .footer-links {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 15px;
-            }
-            
-            .logo {
-                font-size: 1.3rem;
-            }
-            
-            .search-box {
-                flex-direction: column;
-                border-radius: var(--radius);
-            }
-            
-            .search-input {
-                border-radius: var(--radius) var(--radius) 0 0;
-            }
-            
-            .search-button {
-                border-radius: 0 0 var(--radius) var(--radius);
-                padding: 12px;
-            }
-            
-            .filter-toggle, .add-plant-btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .plant-info {
-                padding: 18px;
-            }
-            
-            .plant-name {
-                font-size: 1.2rem;
+                flex-wrap: wrap;
             }
         }
 
@@ -686,6 +762,7 @@
             .admin-panel,
             .filter-toggle,
             .add-plant-btn,
+            .help-btn,
             .filter-group select {
                 background: #2d3748;
                 color: var(--text-primary);
@@ -734,10 +811,9 @@
             font-size: 1.05rem !important;
             color: var(--text-secondary) !important;
             line-height: 1.6 !important;
+            text-align: left !important;
             max-height: 60vh !important;
             overflow-y: auto !important;
-            padding-right: 5px !important;
-            text-align: left !important;
         }
 
         .swal2-confirm {
@@ -751,6 +827,54 @@
         .swal2-image {
             border-radius: var(--radius) !important;
             margin: 1.5rem auto !important;
+        }
+
+        /* Guía de uso */
+        .guide-container {
+            background: var(--secondary-light);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .guide-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .guide-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .guide-step {
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .guide-step h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        @media (max-width: 500px) {
+            .guide-steps {
+                grid-template-columns: 1fr;
+            }
+            
+            .guide-container {
+                padding: 15px;
+            }
         }
     </style>
 </head>
@@ -779,6 +903,11 @@
                     <button id="addPlantBtn" class="add-plant-btn">
                         <i class="fas fa-plus"></i>
                         <span>Agregar Planta</span>
+                    </button>
+
+                    <button id="helpBtn" class="help-btn">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Ayuda</span>
                     </button>
                 </div>
             </div>
@@ -982,6 +1111,32 @@
             </form>
         </div>
 
+        <!-- Guía de uso -->
+        <div class="guide-container">
+            <div class="guide-title">
+                <i class="fas fa-info-circle" style="color: var(--primary); font-size: 1.5rem;"></i>
+                <h3>¿Cómo usar esta aplicación?</h3>
+            </div>
+            <div class="guide-steps">
+                <div class="guide-step">
+                    <h4><i class="fas fa-search"></i> Búsqueda</h4>
+                    <p>Usa la barra de búsqueda para encontrar plantas por nombre o propiedades medicinales.</p>
+                </div>
+                <div class="guide-step">
+                    <h4><i class="fas fa-filter"></i> Filtros</h4>
+                    <p>Aplica filtros para encontrar plantas por región, altitud, clima o propiedades específicas.</p>
+                </div>
+                <div class="guide-step">
+                    <h4><i class="fas fa-map-marked-alt"></i> Mapa</h4>
+                    <p>Explora las plantas en el mapa interactivo. Haz clic en los marcadores para ver detalles.</p>
+                </div>
+                <div class="guide-step">
+                    <h4><i class="fas fa-plus-circle"></i> Agregar</h4>
+                    <p>Añade nuevas plantas medicinales con el botón "Agregar Planta".</p>
+                </div>
+            </div>
+        </div>
+
         <div class="content-wrapper">
             <div class="map-container">
                 <div id="map"></div>
@@ -1117,6 +1272,41 @@
                 precautions: "El aceite esencial debe diluirse antes de aplicar sobre la piel."
             }
         ];
+
+        // Función para mostrar ayuda de la aplicación
+        function showHelp() {
+            Swal.fire({
+                title: '¿Cómo usar Plantas Medicinales?',
+                html: `
+                    <div style="text-align: left; line-height: 1.8;">
+                        <p><strong>Esta aplicación te permite:</strong></p>
+                        <ul>
+                            <li>🌿 <strong>Buscar plantas medicinales</strong> por nombre o propiedades</li>
+                            <li>🔍 <strong>Filtrar plantas</strong> por región, altitud, clima o propiedades específicas</li>
+                            <li>🗺️ <strong>Visualizar en un mapa</strong> la ubicación de las plantas</li>
+                            <li>➕ <strong>Agregar nuevas plantas</strong> a la base de datos</li>
+                            <li>ℹ️ <strong>Ver información detallada</strong> sobre cada planta medicinal</li>
+                        </ul>
+                        
+                        <p><strong>Para buscar:</strong> Escribe en la barra de búsqueda y presiona Enter o el botón de búsqueda.</p>
+                        
+                        <p><strong>Para filtrar:</strong> Haz clic en "Filtros" y selecciona los criterios deseados.</p>
+                        
+                        <p><strong>Para ver detalles:</strong> Haz clic en cualquier tarjeta de planta o marcador del mapa.</p>
+                        
+                        <p><strong>Para agregar plantas:</strong> Usa el botón "Agregar Planta" y completa el formulario.</p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '800px',
+                background: 'var(--card-background)',
+                color: 'var(--text-primary)',
+                customClass: {
+                    confirmButton: 'swal2-confirm'
+                }
+            });
+        }
 
         // Función principal para buscar plantas
         function searchPlants(query = '', filters = {}) {
@@ -1385,6 +1575,7 @@
                 
                 // Ocultar panel de administración
                 document.getElementById('adminForm').classList.remove('active');
+                document.getElementById('addPlantBtn').innerHTML = '<i class="fas fa-plus"></i> <span>Agregar Planta</span>';
                 
                 // Recargar las plantas
                 performSearch();
@@ -1426,6 +1617,10 @@
                     addPlantBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Agregar Planta</span>';
                 }
             });
+            
+            // Botón de ayuda
+            const helpBtn = document.getElementById('helpBtn');
+            helpBtn.addEventListener('click', showHelp);
             
             // Event listeners para búsqueda
             const searchButton = document.getElementById('searchButton');
