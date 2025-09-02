@@ -13,17 +13,23 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #3de29d;
+            --primary: #2a9d8f;
+            --primary-light: #48cae4;
             --primary-dark: #1d7875;
             --secondary: #e9c46a;
+            --secondary-light: #f4e8c9;
             --accent: #e76f51;
+            --accent-light: #f8d7ce;
             --background: #f8f9fa;
             --card-background: #ffffff;
             --text-primary: #264653;
             --text-secondary: #6c757d;
-            --border: #dee2e6;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --radius: 12px;
+            --text-light: #a0aec0;
+            --border: #e2e8f0;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.12);
+            --radius: 16px;
+            --transition: all 0.3s ease;
         }
 
         * {
@@ -45,20 +51,23 @@
             padding: 0 20px;
         }
 
+        /* Header Styles */
         header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: 1.5rem 0;
+            padding: 1.2rem 0;
             box-shadow: var(--shadow);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .logo {
@@ -66,11 +75,12 @@
             align-items: center;
             gap: 12px;
             font-size: 1.5rem;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .logo i {
             font-size: 1.8rem;
+            color: var(--secondary);
         }
 
         .search-container {
@@ -87,12 +97,17 @@
             border-radius: 50px;
             overflow: hidden;
             box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .search-box:focus-within {
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.3);
         }
 
         .search-input {
             flex: 1;
             border: none;
-            padding: 12px 20px;
+            padding: 14px 20px;
             font-size: 1rem;
             outline: none;
         }
@@ -100,11 +115,14 @@
         .search-button {
             background: var(--secondary);
             border: none;
-            padding: 0 20px;
+            padding: 0 22px;
             cursor: pointer;
             color: var(--text-primary);
             font-weight: 500;
-            transition: all 0.2s;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .search-button:hover {
@@ -123,27 +141,29 @@
             align-items: center;
             gap: 8px;
             box-shadow: var(--shadow);
-            transition: all 0.2s;
+            transition: var(--transition);
         }
 
         .filter-toggle:hover {
             background: #f0f0f0;
+            transform: translateY(-2px);
         }
 
+        /* Advanced Filters */
         .advanced-filters {
             background: white;
             border-radius: var(--radius);
-            padding: 20px;
+            padding: 25px;
             margin-top: 20px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
+            gap: 25px;
             box-shadow: var(--shadow);
             transform: scaleY(0);
             transform-origin: top;
             height: 0;
             opacity: 0;
-            transition: all 0.3s ease;
+            transition: var(--transition);
         }
 
         .advanced-filters.active {
@@ -160,71 +180,140 @@
         }
 
         .filter-group label {
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .filter-group label i {
+            color: var(--primary);
         }
 
         .filter-group select {
-            padding: 10px;
+            padding: 12px;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
             background: white;
+            transition: var(--transition);
+            cursor: pointer;
         }
 
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.3);
+        }
+
+        /* Main Content */
         main {
-            padding: 2rem 0;
+            padding: 2.5rem 0;
         }
 
         .content-wrapper {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 35px;
         }
 
-        @media (max-width: 992px) {
+        @media (max-width: 1100px) {
             .content-wrapper {
                 grid-template-columns: 1fr;
             }
         }
 
         .map-container {
-            height: 600px;
+            height: 650px;
             border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
+            position: relative;
         }
 
         #map {
             height: 100%;
             width: 100%;
+            border-radius: var(--radius);
+        }
+
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .legend-user {
+            background: #ff6b6b;
+        }
+
+        .legend-plant {
+            background: #2a9d8f;
         }
 
         .plants-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 25px;
+            align-content: start;
         }
 
+        /* Plant Cards */
         .plant-card {
             background: var(--card-background);
             border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: var(--transition);
             cursor: pointer;
+            position: relative;
         }
 
         .plant-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
         }
 
         .plant-image {
-            height: 180px;
+            height: 200px;
             background-size: cover;
             background-position: center;
             position: relative;
+            transition: var(--transition);
+        }
+
+        .plant-card:hover .plant-image {
+            transform: scale(1.05);
         }
 
         .plant-badge {
@@ -233,19 +322,20 @@
             right: 15px;
             background: var(--accent);
             color: white;
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 50px;
             font-size: 0.8rem;
-            font-weight: 500;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(231, 111, 81, 0.3);
         }
 
         .plant-info {
-            padding: 20px;
+            padding: 22px;
         }
 
         .plant-name {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.3rem;
+            font-weight: 700;
             margin-bottom: 5px;
             color: var(--text-primary);
         }
@@ -253,31 +343,52 @@
         .plant-scientific {
             font-style: italic;
             color: var(--text-secondary);
-            margin-bottom: 12px;
-            font-size: 0.9rem;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
         }
 
         .plant-properties {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+            margin-bottom: 15px;
         }
 
         .property-tag {
             background: rgba(42, 157, 143, 0.15);
             color: var(--primary);
-            padding: 4px 10px;
+            padding: 6px 12px;
             border-radius: 50px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 500;
+            transition: var(--transition);
         }
 
+        .property-tag:hover {
+            background: rgba(42, 157, 143, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .plant-region {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* Status Messages */
         .status-message {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 40px;
+            padding: 50px;
             font-size: 1.1rem;
             color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
         }
 
         .error-message {
@@ -286,7 +397,8 @@
 
         .loader {
             animation: spin 1s linear infinite;
-            margin-right: 10px;
+            font-size: 2rem;
+            color: var(--primary);
         }
 
         @keyframes spin {
@@ -296,14 +408,19 @@
 
         .fade-in {
             opacity: 0;
-            transition: opacity 0.5s ease;
+            animation: fadeIn 0.5s ease forwards;
         }
 
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Footer */
         footer {
             background: white;
-            padding: 2rem 0;
+            padding: 2.5rem 0;
             text-align: center;
-            margin-top: 3rem;
+            margin-top: 4rem;
             border-top: 1px solid var(--border);
             color: var(--text-secondary);
         }
@@ -311,31 +428,38 @@
         .footer-content {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
         .footer-links {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 25px;
+            flex-wrap: wrap;
         }
 
         .footer-links a {
             color: var(--primary);
             text-decoration: none;
-            transition: color 0.2s;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
         }
 
         .footer-links a:hover {
             color: var(--primary-dark);
             text-decoration: underline;
+            transform: translateY(-2px);
         }
 
+        /* Admin Panel */
         .admin-panel {
             background: white;
             border-radius: var(--radius);
-            padding: 20px;
-            margin-top: 30px;
+            padding: 25px;
+            margin-top: 40px;
             box-shadow: var(--shadow);
         }
 
@@ -344,15 +468,24 @@
             color: white;
             border: none;
             border-radius: 50px;
-            padding: 10px 20px;
+            padding: 12px 24px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+
+        .admin-toggle:hover {
+            background: #d45a3f;
+            transform: translateY(-2px);
         }
 
         .plant-form {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
         }
 
@@ -363,20 +496,39 @@
         }
 
         .form-group label {
-            font-weight: 500;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group label i {
+            color: var(--primary);
+            font-size: 0.9rem;
         }
 
         .form-group input,
         .form-group textarea,
         .form-group select {
-            padding: 10px;
+            padding: 12px;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
+            transition: var(--transition);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.3);
         }
 
         .form-group textarea {
-            min-height: 100px;
+            min-height: 110px;
             resize: vertical;
         }
 
@@ -385,16 +537,179 @@
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: 500;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: var(--transition);
+            margin-top: 15px;
         }
 
         .form-submit:hover {
             background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--text-primary);
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85rem;
+            font-weight: normal;
+        }
+
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--text-primary) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-container {
+                max-width: 100%;
+            }
+            
+            .content-wrapper {
+                gap: 25px;
+            }
+            
+            .map-container {
+                height: 450px;
+            }
+            
+            .plants-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .plant-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .advanced-filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .logo {
+                font-size: 1.3rem;
+            }
+            
+            .search-box {
+                flex-direction: column;
+                border-radius: var(--radius);
+            }
+            
+            .search-input {
+                border-radius: var(--radius) var(--radius) 0 0;
+            }
+            
+            .search-button {
+                border-radius: 0 0 var(--radius) var(--radius);
+                padding: 12px;
+            }
+            
+            .filter-toggle {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .plant-info {
+                padding: 18px;
+            }
+            
+            .plant-name {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #1a202c;
+                --card-background: #2d3748;
+                --text-primary: #e2e8f0;
+                --text-secondary: #a0aec0;
+                --border: #4a5568;
+            }
+            
+            .search-box,
+            .advanced-filters,
+            .admin-panel,
+            .filter-toggle,
+            .filter-group select {
+                background: #2d3748;
+                color: var(--text-primary);
+            }
+            
+            .search-input {
+                background: #2d3748;
+                color: var(--text-primary);
+            }
+            
+            footer {
+                background: #2d3748;
+            }
+        }
+
+        /* Animation for cards */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .plant-card {
+            animation: slideIn 0.5s ease forwards;
         }
     </style>
 </head>
@@ -424,7 +739,14 @@
             
             <div id="advancedFilters" class="advanced-filters">
                 <div class="filter-group">
-                    <label for="propertyFilter">Propiedad medicinal</label>
+                    <label for="propertyFilter">
+                        <i class="fas fa-heart"></i>
+                        Propiedad medicinal
+                        <div class="tooltip">
+                            <i class="fas fa-question-circle" style="color: var(--text-light); font-size: 0.9rem;"></i>
+                            <span class="tooltip-text">Filtra por las propiedades medicinales de las plantas</span>
+                        </div>
+                    </label>
                     <select id="propertyFilter">
                         <option value="">Todas las propiedades</option>
                         <option value="Digestiva">Digestiva</option>
@@ -439,7 +761,14 @@
                 </div>
                 
                 <div class="filter-group">
-                    <label for="zoneFilter">Región</label>
+                    <label for="zoneFilter">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Región
+                        <div class="tooltip">
+                            <i class="fas fa-question-circle" style="color: var(--text-light); font-size: 0.9rem;"></i>
+                            <span class="tooltip-text">Filtra por la región donde se encuentra la planta</span>
+                        </div>
+                    </label>
                     <select id="zoneFilter">
                         <option value="">Todas las regiones</option>
                         <option value="norte">Norte</option>
@@ -451,7 +780,14 @@
                 </div>
                 
                 <div class="filter-group">
-                    <label for="altitudeFilter">Altitud</label>
+                    <label for="altitudeFilter">
+                        <i class="fas fa-mountain"></i>
+                        Altitud
+                        <div class="tooltip">
+                            <i class="fas fa-question-circle" style="color: var(--text-light); font-size: 0.9rem;"></i>
+                            <span class="tooltip-text">Filtra por el rango de altitud donde crece la planta</span>
+                        </div>
+                    </label>
                     <select id="altitudeFilter">
                         <option value="">Todos los rangos</option>
                         <option value="0-500">0-500 m</option>
@@ -461,7 +797,14 @@
                 </div>
                 
                 <div class="filter-group">
-                    <label for="climateFilter">Clima</label>
+                    <label for="climateFilter">
+                        <i class="fas fa-cloud-sun"></i>
+                        Clima
+                        <div class="tooltip">
+                            <i class="fas fa-question-circle" style="color: var(--text-light); font-size: 0.9rem;"></i>
+                            <span class="tooltip-text">Filtra por el tipo de clima donde crece la planta</span>
+                        </div>
+                    </label>
                     <select id="climateFilter">
                         <option value="">Todos los climas</option>
                         <option value="templado">Templado</option>
@@ -479,11 +822,26 @@
         <div class="content-wrapper">
             <div class="map-container">
                 <div id="map"></div>
+                <div class="map-legend">
+                    <div class="legend-title">
+                        <i class="fas fa-map-marked-alt"></i>
+                        Leyenda del Mapa
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-user"></div>
+                        <span>Tu ubicación</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-plant"></div>
+                        <span>Plantas medicinales</span>
+                    </div>
+                </div>
             </div>
             
             <div id="plantsContainer" class="plants-container">
                 <div class="status-message">
-                    <i class="fas fa-spinner loader"></i> Cargando plantas...
+                    <i class="fas fa-spinner loader"></i>
+                    <span>Cargando plantas medicinales...</span>
                 </div>
             </div>
         </div>
@@ -494,36 +852,55 @@
             </button>
             
             <div id="adminForm" style="display: none;">
-                <h3>Añadir Nueva Planta Medicinal</h3>
+                <h3><i class="fas fa-plus-circle"></i> Añadir Nueva Planta Medicinal</h3>
                 <form id="plantForm" class="plant-form">
                     <div class="form-group">
-                        <label for="common_name">Nombre común</label>
-                        <input type="text" id="common_name" required>
+                        <label for="common_name">
+                            <i class="fas fa-signature"></i>
+                            Nombre común
+                        </label>
+                        <input type="text" id="common_name" required placeholder="Ej: Manzanilla">
                     </div>
                     
                     <div class="form-group">
-                        <label for="scientific_name">Nombre científico</label>
-                        <input type="text" id="scientific_name" required>
+                        <label for="scientific_name">
+                            <i class="fas fa-microscope"></i>
+                            Nombre científico
+                        </label>
+                        <input type="text" id="scientific_name" required placeholder="Ej: Matricaria chamomilla">
                     </div>
                     
                     <div class="form-group">
-                        <label for="image_url">URL de la imagen</label>
-                        <input type="url" id="image_url" required>
+                        <label for="image_url">
+                            <i class="fas fa-image"></i>
+                            URL de la imagen
+                        </label>
+                        <input type="url" id="image_url" required placeholder="https://ejemplo.com/imagen.jpg">
                     </div>
                     
                     <div class="form-group">
-                        <label for="properties">Propiedades (separadas por coma)</label>
-                        <input type="text" id="properties" required>
+                        <label for="properties">
+                            <i class="fas fa-heart"></i>
+                            Propiedades (separadas por coma)
+                        </label>
+                        <input type="text" id="properties" required placeholder="Digestiva, Relajante, Antiinflamatoria">
                     </div>
                     
                     <div class="form-group">
-                        <label for="distribution">Distribución</label>
-                        <input type="text" id="distribution" required>
+                        <label for="distribution">
+                            <i class="fas fa-globe-americas"></i>
+                            Distribución
+                        </label>
+                        <input type="text" id="distribution" required placeholder="Regiones de Europa y Asia">
                     </div>
                     
                     <div class="form-group">
-                        <label for="region">Región</label>
+                        <label for="region">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Región
+                        </label>
                         <select id="region" required>
+                            <option value="">Selecciona una región</option>
                             <option value="norte">Norte</option>
                             <option value="sur">Sur</option>
                             <option value="este">Este</option>
@@ -533,8 +910,12 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="altitude_range">Rango de altitud</label>
+                        <label for="altitude_range">
+                            <i class="fas fa-mountain"></i>
+                            Rango de altitud
+                        </label>
                         <select id="altitude_range" required>
+                            <option value="">Selecciona un rango</option>
                             <option value="0-500">0-500 m</option>
                             <option value="500-1500">500-1500 m</option>
                             <option value="1500-3000">1500-3000 m</option>
@@ -542,31 +923,48 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="climate_zones">Zonas climáticas (separadas por coma)</label>
-                        <input type="text" id="climate_zones" required>
+                        <label for="climate_zones">
+                            <i class="fas fa-cloud-sun"></i>
+                            Zonas climáticas (separadas por coma)
+                        </label>
+                        <input type="text" id="climate_zones" required placeholder="templado, seco">
                     </div>
                     
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label for="description">Descripción</label>
-                        <textarea id="description"></textarea>
+                        <label for="description">
+                            <i class="fas fa-align-left"></i>
+                            Descripción
+                        </label>
+                        <textarea id="description" placeholder="Describe la planta..."></textarea>
                     </div>
                     
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label for="medicinal_uses">Usos medicinales</label>
-                        <textarea id="medicinal_uses"></textarea>
+                        <label for="medicinal_uses">
+                            <i class="fas fa-first-aid"></i>
+                            Usos medicinales
+                        </label>
+                        <textarea id="medicinal_uses" placeholder="Describe los usos medicinales..."></textarea>
                     </div>
                     
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label for="preparation_methods">Métodos de preparación</label>
-                        <textarea id="preparation_methods"></textarea>
+                        <label for="preparation_methods">
+                            <i class="fas fa-mortar-pestle"></i>
+                            Métodos de preparación
+                        </label>
+                        <textarea id="preparation_methods" placeholder="Describe cómo prepararla..."></textarea>
                     </div>
                     
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label for="precautions">Precauciones</label>
-                        <textarea id="precautions"></textarea>
+                        <label for="precautions">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Precauciones
+                        </label>
+                        <textarea id="precautions" placeholder="Indica las precauciones necesarias..."></textarea>
                     </div>
                     
-                    <button type="submit" class="form-submit">Guardar Planta</button>
+                    <button type="submit" class="form-submit">
+                        <i class="fas fa-save"></i> Guardar Planta
+                    </button>
                 </form>
             </div>
         </div>
@@ -577,9 +975,18 @@
             <div class="footer-content">
                 <p>Explora el mundo de las plantas medicinales y sus propiedades curativas</p>
                 <div class="footer-links">
-                    <a href="#"><i class="fas fa-info-circle"></i> Acerca de</a>
-                    <a href="#"><i class="fas fa-envelope"></i> Contacto</a>
-                    <a href="#"><i class="fas fa-shield-alt"></i> Privacidad</a>
+                    <a href="#">
+                        <i class="fas fa-info-circle"></i> Acerca de
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-envelope"></i> Contacto
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-shield-alt"></i> Privacidad
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-question-circle"></i> Ayuda
+                    </a>
                 </div>
                 <p>© 2023 Plantas Medicinales. Todos los derechos reservados.</p>
             </div>
@@ -589,7 +996,7 @@
     <script>
         // Configuración de Supabase
         const SUPABASE_URL = 'https://dltnrcmhopkfgkmupjbl.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
         
         // Inicializar Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -602,13 +1009,19 @@
         // Función principal para buscar plantas
         async function searchPlants(query = '', filters = {}) {
             const plantsContainer = document.getElementById('plantsContainer');
-            plantsContainer.innerHTML = '<div class="status-message"><i class="fas fa-spinner loader"></i> Buscando plantas...</div>';
+            plantsContainer.innerHTML = `
+                <div class="status-message">
+                    <i class="fas fa-spinner loader"></i>
+                    <span>Buscando plantas...</span>
+                </div>
+            `;
             
             try {
                 // Primero intentamos cargar desde Supabase
                 let supabaseQuery = supabase
                     .from('medicinal_plants')
-                    .select('*');
+                    .select('*')
+                    .order('common_name', { ascending: true });
                 
                 // Aplicar filtro de búsqueda de texto
                 if (query && query.trim() !== '') {
@@ -634,8 +1047,6 @@
                     supabaseQuery = supabaseQuery.contains('climate_zones', [filters.climate]);
                 }
                 
-                console.log('Ejecutando consulta con filtros:', filters);
-                
                 const { data: plants, error } = await supabaseQuery;
                 
                 if (error) {
@@ -657,13 +1068,23 @@
                         });
                     }
                 } else {
-                    plantsContainer.innerHTML = '<div class="status-message">No se encontraron plantas. Intenta con otros términos de búsqueda.</div>';
+                    plantsContainer.innerHTML = `
+                        <div class="status-message">
+                            <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                            <span>No se encontraron plantas. Intenta con otros términos de búsqueda.</span>
+                        </div>
+                    `;
                     allPlants = [];
                     updateMapWithPlants([]);
                 }
             } catch (error) {
                 console.error('Error buscando plantas:', error);
-                plantsContainer.innerHTML = '<div class="status-message error-message">Error al conectar con la base de datos. Cargando plantas de ejemplo...</div>';
+                plantsContainer.innerHTML = `
+                    <div class="status-message error-message">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <span>Error al conectar con la base de datos. Cargando plantas de ejemplo...</span>
+                    </div>
+                `;
                 
                 // Mostrar plantas de ejemplo como último recurso
                 setTimeout(() => {
@@ -732,15 +1153,21 @@
             const plantsContainer = document.getElementById('plantsContainer');
             
             if (plants.length === 0) {
-                plantsContainer.innerHTML = '<div class="status-message">No se encontraron plantas que coincidan con tu búsqueda.</div>';
+                plantsContainer.innerHTML = `
+                    <div class="status-message">
+                        <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <span>No se encontraron plantas que coincidan con tu búsqueda.</span>
+                    </div>
+                `;
                 return;
             }
             
             plantsContainer.innerHTML = '';
             
-            plants.forEach(plant => {
+            plants.forEach((plant, index) => {
                 const plantCard = document.createElement('div');
                 plantCard.className = 'plant-card fade-in';
+                plantCard.style.animationDelay = `${index * 0.1}s`;
                 plantCard.onclick = () => showPlantDetails(plant);
                 
                 const imageUrl = plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3';
@@ -758,15 +1185,14 @@
                                 '<span class="property-tag">Medicinal</span>'
                             }
                         </div>
+                        <div class="plant-region">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${plant.region ? `Región ${plant.region.charAt(0).toUpperCase() + plant.region.slice(1)}` : 'Región no especificada'}
+                        </div>
                     </div>
                 `;
                 
                 plantsContainer.appendChild(plantCard);
-                
-                // Hacer que las tarjetas aparezcan con animación
-                setTimeout(() => {
-                    plantCard.style.opacity = '1';
-                }, 100);
             });
         }
 
@@ -775,11 +1201,11 @@
             Swal.fire({
                 title: plant.common_name || 'Planta Medicinal',
                 html: `
-                    <div style="text-align: left;">
+                    <div style="text-align: left; max-height: 60vh; overflow-y: auto; padding-right: 10px;">
                         <p><strong>Nombre científico:</strong> ${plant.scientific_name || 'No disponible'}</p>
                         <p><strong>Propiedades:</strong> ${plant.properties ? (Array.isArray(plant.properties) ? plant.properties.join(', ') : plant.properties) : 'Medicinal'}</p>
                         <p><strong>Distribución:</strong> ${plant.distribution || 'No disponible'}</p>
-                        <p><strong>Región:</strong> ${plant.region || 'No especificada'}</p>
+                        <p><strong>Región:</strong> ${plant.region ? plant.region.charAt(0).toUpperCase() + plant.region.slice(1) : 'No especificada'}</p>
                         <p><strong>Rango de altitud:</strong> ${plant.altitude_range || 'No especificado'}</p>
                         <p><strong>Zonas climáticas:</strong> ${plant.climate_zones ? (Array.isArray(plant.climate_zones) ? plant.climate_zones.join(', ') : plant.climate_zones) : 'No especificado'}</p>
                         ${plant.description ? `<p><strong>Descripción:</strong> ${plant.description}</p>` : ''}
@@ -796,7 +1222,10 @@
                 background: 'var(--card-background)',
                 color: 'var(--text-primary)',
                 confirmButtonColor: 'var(--primary)',
-                width: '700px'
+                width: '700px',
+                customClass: {
+                    popup: 'plant-detail-popup'
+                }
             });
         }
 
@@ -827,7 +1256,15 @@
                             map.removeLayer(userLocationMarker);
                         }
                         
-                        userLocationMarker = L.marker([userLocation.lat, userLocation.lng])
+                        // Crear un icono personalizado para la ubicación del usuario
+                        const userIcon = L.divIcon({
+                            className: 'user-location-marker',
+                            html: '<div style="background-color: #ff6b6b; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>',
+                            iconSize: [22, 22],
+                            iconAnchor: [11, 11]
+                        });
+                        
+                        userLocationMarker = L.marker([userLocation.lat, userLocation.lng], {icon: userIcon})
                             .addTo(map)
                             .bindPopup('<b>Tu ubicación actual</b>')
                             .openPopup();
@@ -854,13 +1291,12 @@
             });
             plantMarkers = [];
             
-            const plantIcon = L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
+            // Crear un icono personalizado para las plantas
+            const plantIcon = L.divIcon({
+                className: 'plant-marker',
+                html: '<div style="background-color: #2a9d8f; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
             });
             
             plants.forEach(plant => {
@@ -877,7 +1313,7 @@
                 popupContent.innerHTML = `
                     <div style="font-weight: bold; margin-bottom: 5px; color: #2a9d8f; font-size: 1.1rem;">${plant.common_name || 'Planta medicinal'}</div>
                     <div><i>${plant.scientific_name || 'Nombre científico no disponible'}</i></div>
-                    <button style="margin-top: 8px; padding: 5px 10px; background: #2a9d8f; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    <button style="margin-top: 8px; padding: 8px 16px; background: #2a9d8f; color: white; border: none; border-radius: 6px; cursor: pointer; width: 100%;">
                         Ver detalles
                     </button>
                 `;
@@ -935,7 +1371,7 @@
                 advancedFilters.classList.toggle('active');
                 
                 if (advancedFilters.classList.contains('active')) {
-                    filterToggle.innerHTML = '<i class="fas fa-times"></i> <span class="filter-text">Cerrar</span>';
+                    filterToggle.innerHTML = '<i class="fas fa-times"></i> <span class="filter-text">Cerrar Filtros</span>';
                 } else {
                     filterToggle.innerHTML = '<i class="fas fa-filter"></i> <span class="filter-text">Filtros</span>';
                 }
@@ -1009,21 +1445,7 @@
                 
                 addPlant(plantData);
             });
-            
-            // Efectos de aparición para elementos
-            const fadeElements = document.querySelectorAll('.fade-in');
-            fadeElements.forEach(el => {
-                el.style.opacity = '0';
-            });
-            
-            setTimeout(() => {
-                fadeElements.forEach(el => {
-                    el.style.opacity = '1';
-                });
-            }, 100);
         };
-
-        
     </script>
 </body>
 </html>
