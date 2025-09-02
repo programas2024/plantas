@@ -12,8 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* Estilos anteriores sin cambios */
-        :root {
+       :root {
             --primary: #2a9d8f;
             --primary-light: #48cae4;
             --primary-dark: #1d7875;
@@ -323,10 +322,6 @@
             background: #2a9d8f;
         }
 
-        .legend-trefle {
-            background: #9b59b6;
-        }
-
         .plants-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -373,11 +368,6 @@
             font-size: 0.8rem;
             font-weight: 600;
             box-shadow: 0 4px 10px rgba(231, 111, 81, 0.3);
-        }
-
-        .trefle-badge {
-            background: #9b59b6;
-            box-shadow: 0 4px 10px rgba(155, 89, 182, 0.3);
         }
 
         .plant-info {
@@ -427,16 +417,6 @@
             color: var(--text-secondary);
             font-size: 0.9rem;
             margin-top: 10px;
-        }
-
-        .trefle-source {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #9b59b6;
-            font-size: 0.8rem;
-            margin-top: 10px;
-            font-weight: 500;
         }
 
         /* Status Messages */
@@ -1175,10 +1155,6 @@
                         <div class="legend-color legend-plant"></div>
                         <span>Plantas medicinales</span>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color legend-trefle"></div>
-                        <span>Plantas de Trefle</span>
-                    </div>
                 </div>
             </div>
             
@@ -1215,612 +1191,666 @@
     </footer>
 
     <script>
-        // Configuración de Supabase
-        const SUPABASE_URL = 'https://dltnrcmhopkfgkmupjbl.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
-        
-        // Inicializar Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // Variables globales
-        let map, userLocationMarker, userLocation;
-        let allPlants = [];
-        let plantMarkers = [];
-        const TREFLETOKEN = 'L3V7VeThnOso2GVtTMe7EGV2Qibphlbd4IkCopNkJiE';
+    // Configuración de Supabase
+    const SUPABASE_URL = 'https://dltnrcmhopkfgkmupjbl.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
+    
+    // Inicializar Supabase
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Variables globales
+    let map, userLocationMarker, userLocation;
+    let allPlants = [];
+    let plantMarkers = [];
+    const TREFLETOKEN = 'L3V7VeThnOso2GVtTMe7EGV2Qibphlbd4IkCopNkJiE';
 
-        // Función para mostrar ayuda de la aplicación
-        function showHelp() {
-            Swal.fire({
-                title: '¿Cómo usar Plantas Medicinales?',
-                html: `
-                    <div style="text-align: left; line-height: 1.8;">
-                        <p><strong>Esta aplicación te permite:</strong></p>
-                        <ul>
-                            <li>🌿 <strong>Buscar plantas medicinales</strong> por nombre o propiedades</li>
-                            <li>🔍 <strong>Filtrar plantas</strong> por región, altitud, clima o propiedades específicas</li>
-                            <li>🗺️ <strong>Visualizar en un mapa</strong> la ubicación de las plantas</li>
-                            <li>➕ <strong>Agregar nuevas plantas</strong> a la base de datos</li>
-                            <li>ℹ️ <strong>Ver información detallada</strong> sobre cada planta medicinal</li>
-                        </ul>
-                        
-                        <p><strong>Para buscar:</strong> Escribe en la barra de búsqueda y presiona Enter o el botón de búsqueda.</p>
-                        
-                        <p><strong>Para filtrar:</strong> Haz clic en "Filtros" y selecciona los criterios deseados.</p>
-                        
-                        <p><strong>Para ver detalles:</strong> Haz clic en cualquier tarjeta de planta o marcador del mapa.</p>
-                        
-                        <p><strong>Para agregar plantas:</strong> Usa el botón "Agregar Planta" y completa el formulario.</p>
-                    </div>
-                `,
-                icon: 'info',
-                confirmButtonText: 'Entendido',
-                width: '800px',
-                background: 'var(--card-background)',
-                color: 'var(--text-primary)',
-                customClass: {
-                    confirmButton: 'swal2-confirm'
-                }
-            });
-        }
-
-        // Función principal para buscar plantas
-        async function searchPlants(query = '', filters = {}) {
-            const plantsContainer = document.getElementById('plantsContainer');
-            plantsContainer.innerHTML = `
-                <div class="status-message">
-                    <i class="fas fa-spinner loader"></i>
-                    <span>Buscando plantas...</span>
+    // Función para mostrar ayuda de la aplicación
+    function showHelp() {
+        Swal.fire({
+            title: '¿Cómo usar Plantas Medicinales?',
+            html: `
+                <div style="text-align: left; line-height: 1.8;">
+                    <p><strong>Esta aplicación te permite:</strong></p>
+                    <ul>
+                        <li>🌿 <strong>Buscar plantas medicinales</strong> por nombre o propiedades</li>
+                        <li>🔍 <strong>Filtrar plantas</strong> por región, altitud, clima o propiedades específicas</li>
+                        <li>🗺️ <strong>Visualizar en un mapa</strong> la ubicación de las plantas</li>
+                        <li>➕ <strong>Agregar nuevas plantas</strong> a la base de datos</li>
+                        <li>ℹ️ <strong>Ver información detallada</strong> sobre cada planta medicinal</li>
+                    </ul>
+                    
+                    <p><strong>Para buscar:</strong> Escribe en la barra de búsqueda y presiona Enter o el botón de búsqueda.</p>
+                    
+                    <p><strong>Para filtrar:</strong> Haz clic en "Filtros" y selecciona los criterios deseados.</p>
+                    
+                    <p><strong>Para ver detalles:</strong> Haz clic en cualquier tarjeta de planta o marcador del mapa.</p>
+                    
+                    <p><strong>Para agregar plantas:</strong> Usa el botón "Agregar Planta" y completa el formulario.</p>
                 </div>
-            `;
-            
-            try {
-                // Primero intentamos cargar desde Supabase
-                let supabaseQuery = supabase
-                    .from('medicinal_plants')
-                    .select('*')
-                    .order('common_name', { ascending: true });
-                
-                // Aplicar filtro de búsqueda de texto
-                if (query && query.trim() !== '') {
-                    supabaseQuery = supabaseQuery.or(`common_name.ilike.%${query}%,scientific_name.ilike.%${query}%`);
-                }
-                
-                // Aplicar filtros adicionales solo si tienen valor
-                if (filters.region && filters.region !== '') {
-                    supabaseQuery = supabaseQuery.eq('region', filters.region);
-                }
-                
-                if (filters.altitude && filters.altitude !== '') {
-                    supabaseQuery = supabaseQuery.eq('altitude_range', filters.altitude);
-                }
-                
-                if (filters.property && filters.property !== '') {
-                    // Para propiedades, usamos el operador de contención para arrays
-                    supabaseQuery = supabaseQuery.contains('properties', [filters.property]);
-                }
-                
-                if (filters.climate && filters.climate !== '') {
-                    // Para zonas climáticas, también usamos el operador de contención para arrays
-                    supabaseQuery = supabaseQuery.contains('climate_zones', [filters.climate]);
-                }
-                
-                const { data: plants, error } = await supabaseQuery;
-                
-                if (error) {
-                    console.error('Error de Supabase:', error);
-                    throw error;
-                }
-                
-                if (plants && plants.length > 0) {
-                    allPlants = plants;
-                    displayPlants(allPlants, false);
-                    updateMapWithPlants(allPlants, false);
-                    
-                    // Mostrar confetti si hay resultados
-                    if (plants.length > 0) {
-                        confetti({
-                            particleCount: 100,
-                            spread: 70,
-                            origin: { y: 0.6 }
-                        });
-                    }
-                } else {
-                    // Si no hay resultados en Supabase, buscar en Trefle
-                    plantsContainer.innerHTML = `
-                        <div class="status-message">
-                            <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
-                            <span>No se encontraron plantas en nuestra base de datos. Buscando en Trefle...</span>
-                        </div>
-                    `;
-                    
-                    // Buscar en la API de Trefle
-                    await searchTreflePlants(query);
-                }
-            } catch (error) {
-                console.error('Error buscando plantas:', error);
-                plantsContainer.innerHTML = `
-                    <div class="status-message error-message">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
-                        <span>Error al conectar con la base de datos. Buscando en Trefle...</span>
-                    </div>
-                `;
-                
-                // Intentar buscar en Trefle como último recurso
-                setTimeout(() => {
-                    searchTreflePlants(query);
-                }, 2000);
+            `,
+            icon: 'info',
+            confirmButtonText: 'Entendido',
+            width: '800px',
+            background: 'var(--card-background)',
+            color: 'var(--text-primary)',
+            customClass: {
+                confirmButton: 'swal2-confirm'
             }
-        }
+        });
+    }
 
-        // Función para buscar plantas en la API de Trefle usando un proxy CORS
-        async function searchTreflePlants(query) {
-            const plantsContainer = document.getElementById('plantsContainer');
+    // Función principal para buscar plantas
+    async function searchPlants(query = '', filters = {}) {
+        const plantsContainer = document.getElementById('plantsContainer');
+        plantsContainer.innerHTML = `
+            <div class="status-message">
+                <i class="fas fa-spinner loader"></i>
+                <span>Buscando plantas...</span>
+            </div>
+        `;
+        
+        try {
+            // Primero intentamos cargar desde Supabase
+            let supabaseQuery = supabase
+                .from('medicinal_plants')
+                .select('*')
+                .order('common_name', { ascending: true });
             
-            if (!query || query.trim() === '') {
+            // Aplicar filtro de búsqueda de texto
+            if (query && query.trim() !== '') {
+                supabaseQuery = supabaseQuery.or(`common_name.ilike.%${query}%,scientific_name.ilike.%${query}%`);
+            }
+            
+            // Aplicar filtros adicionales solo si tienen valor
+            if (filters.region && filters.region !== '') {
+                supabaseQuery = supabaseQuery.eq('region', filters.region);
+            }
+            
+            if (filters.altitude && filters.altitude !== '') {
+                supabaseQuery = supabaseQuery.eq('altitude_range', filters.altitude);
+            }
+            
+            if (filters.property && filters.property !== '') {
+                // Para propiedades, usamos el operador de contención para arrays
+                supabaseQuery = supabaseQuery.contains('properties', [filters.property]);
+            }
+            
+            if (filters.climate && filters.climate !== '') {
+                // Para zonas climáticas, también usamos el operador de contención para arrays
+                supabaseQuery = supabaseQuery.contains('climate_zones', [filters.climate]);
+            }
+            
+            const { data: plants, error } = await supabaseQuery;
+            
+            if (error) {
+                console.error('Error de Supabase:', error);
+                // Si hay error de autenticación (401), saltar directamente a Trefle
+                if (error.code === 'PGRST301' || error.message.includes('401')) {
+                    throw new Error('Error de autenticación con Supabase');
+                }
+                throw error;
+            }
+            
+            if (plants && plants.length > 0) {
+                allPlants = plants;
+                displayPlants(allPlants, false);
+                updateMapWithPlants(allPlants, false);
+                
+                // Mostrar confetti si hay resultados
+                if (plants.length > 0) {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+            } else {
+                // Si no hay resultados en Supabase, buscar en Trefle
                 plantsContainer.innerHTML = `
                     <div class="status-message">
                         <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
-                        <span>Ingresa un término de búsqueda para buscar en Trefle.</span>
+                        <span>No se encontraron plantas en nuestra base de datos. Buscando en Trefle...</span>
+                    </div>
+                `;
+                
+                // Buscar en la API de Trefle
+                await searchTreflePlants(query);
+            }
+        } catch (error) {
+            console.error('Error buscando plantas:', error);
+            plantsContainer.innerHTML = `
+                <div class="status-message">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                    <span>Error al conectar con nuestra base de datos. Buscando en Trefle...</span>
+                </div>
+            `;
+            
+            // Intentar buscar en Trefle como último recurso
+            setTimeout(() => {
+                searchTreflePlants(query);
+            }, 1500);
+        }
+    }
+
+    // Función para buscar plantas en la API de Trefle usando diferentes proxies
+    async function searchTreflePlants(query) {
+        const plantsContainer = document.getElementById('plantsContainer');
+        
+        if (!query || query.trim() === '') {
+            plantsContainer.innerHTML = `
+                <div class="status-message">
+                    <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                    <span>Ingresa un término de búsqueda para buscar en Trefle.</span>
+                </div>
+            `;
+            allPlants = [];
+            updateMapWithPlants([], false);
+            return;
+        }
+        
+        try {
+            plantsContainer.innerHTML = `
+                <div class="status-message">
+                    <i class="fas fa-spinner loader"></i>
+                    <span>Buscando "${query}" en Trefle...</span>
+                </div>
+            `;
+            
+            // Intentar con diferentes proxies CORS
+            const proxyUrls = [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ];
+            
+            const trefleUrl = `https://trefle.io/api/v1/plants/search?token=${TREFLETOKEN}&q=${encodeURIComponent(query)}`;
+            
+            let response;
+            let lastError;
+            
+            // Probar cada proxy hasta que uno funcione
+            for (const proxyUrl of proxyUrls) {
+                try {
+                    response = await fetch(proxyUrl + encodeURIComponent(trefleUrl), {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        break; // Salir del bucle si la respuesta es exitosa
+                    } else {
+                        lastError = new Error(`Error HTTP: ${response.status}`);
+                    }
+                } catch (err) {
+                    lastError = err;
+                    continue; // Continuar con el siguiente proxy
+                }
+            }
+            
+            if (!response || !response.ok) {
+                throw lastError || new Error('No se pudo conectar con Trefle');
+            }
+            
+            const data = await response.json();
+            
+            if (data && data.data && data.data.length > 0) {
+                // Convertir los datos de Trefle al formato de nuestra aplicación
+                const treflePlants = data.data.map((plant, index) => {
+                    // Generar coordenadas aleatorias cerca del usuario para el mapa
+                    const offsetLat = userLocation ? (Math.random() - 0.5) * 0.5 : (Math.random() - 0.5);
+                    const offsetLng = userLocation ? (Math.random() - 0.5) * 0.5 : (Math.random() - 0.5);
+                    
+                    return {
+                        id: plant.id || Date.now() + index,
+                        common_name: plant.common_name || 'Nombre no disponible',
+                        scientific_name: plant.scientific_name || 'Nombre científico no disponible',
+                        image_url: plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
+                        properties: ["Medicinal"], // Valor por defecto
+                        distribution: plant.distribution || 'Distribución no especificada',
+                        region: 'desconocida',
+                        altitude_range: '0-500',
+                        climate_zones: ['templado'],
+                        description: plant.family ? `Pertenece a la familia ${plant.family}` : 'Planta medicinal con diversas propiedades.',
+                        medicinal_uses: 'Usos medicinales tradicionales.',
+                        preparation_methods: 'Consulta con un especialista para métodos de preparación adecuados.',
+                        precautions: 'Precauciones generales para plantas medicinales.',
+                        // Coordenadas para el mapa
+                        latitude: userLocation ? userLocation.lat + offsetLat : 40.41 + offsetLat,
+                        longitude: userLocation ? userLocation.lng + offsetLng : -3.70 + offsetLng,
+                        fromTrefle: true // Marcar como planta de Trefle
+                    };
+                });
+                
+                allPlants = treflePlants;
+                displayPlants(treflePlants, true);
+                updateMapWithPlants(treflePlants, true);
+                
+                // Mostrar mensaje indicando que son resultados de Trefle
+                if (treflePlants.length > 0) {
+                    Swal.fire({
+                        title: 'Resultados de Trefle',
+                        text: `Se encontraron ${treflePlants.length} plantas en la base de datos de Trefle.`,
+                        icon: 'info',
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+            } else {
+                plantsContainer.innerHTML = `
+                    <div class="status-message">
+                        <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                        <span>No se encontraron plantas en Trefle para "${query}".</span>
                     </div>
                 `;
                 allPlants = [];
                 updateMapWithPlants([], false);
-                return;
             }
+        } catch (error) {
+            console.error('Error buscando en Trefle:', error);
+            plantsContainer.innerHTML = `
+                <div class="status-message">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                    <span>Error al conectar con Trefle. Cargando plantas de ejemplo...</span>
+                </div>
+            `;
             
-            try {
-                plantsContainer.innerHTML = `
-                    <div class="status-message">
-                        <i class="fas fa-spinner loader"></i>
-                        <span>Buscando "${query}" en Trefle...</span>
+            // Mostrar plantas de ejemplo como último recurso
+            setTimeout(() => {
+                loadExamplePlants();
+            }, 1500);
+        }
+    }
+
+    // Cargar plantas de ejemplo si Supabase falla
+    function loadExamplePlants() {
+        const examplePlants = [
+            {
+                id: 1,
+                common_name: "Manzanilla",
+                scientific_name: "Matricaria chamomilla",
+                image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
+                properties: ["Digestiva", "Relajante", "Antiinflamatoria"],
+                distribution: "Amplia distribución en Europa y Asia",
+                region: "norte",
+                altitude_range: "500-1500",
+                climate_zones: ["templado"],
+                description: "La manzanilla es conocida por sus propiedades calmantes y se utiliza comúnmente para aliviar problemas digestivos y promover la relajación.",
+                medicinal_uses: "Infusión para problemas digestivos, ansiedad e irritaciones de la piel.",
+                preparation_methods: "Infusión con 1 cucharada de flores secas por taza de agua hirviendo, dejar reposar 5 minutos.",
+                precautions: "Puede causar reacciones alérgicas en personas sensibles a las plantas de la familia de las margaritas."
+            },
+            {
+                id: 2,
+                common_name: "Menta",
+                scientific_name: "Mentha spicata",
+                image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
+                properties: ["Digestiva", "Refrescante", "Analgésica"],
+                distribution: "Regiones templadas de todo el mundo",
+                region: "sur",
+                altitude_range: "0-500",
+                climate_zones: ["templado"],
+                description: "La menta es una hierba aromática muy popular por su efecto refrescante y su capacidad para aliviar problemas digestivos.",
+                medicinal_uses: "Alivio de indigestión, náuseas, dolor de cabeza y congestión respiratoria.",
+                preparation_methods: "Infusión con hojas frescas o secas, inhalación de vapores para congestión.",
+                precautions: "Evitar en niños pequeños y en casos de reflujo gastroesofágico severo."
+            },
+            {
+                id: 3,
+                common_name: "Aloe Vera",
+                scientific_name: "Aloe barbadensis miller",
+                image_url: "https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3",
+                properties: ["Cicatrizante", "Hidratante", "Antiinflamatoria"],
+                distribution: "Regiones tropicales y subtropicales",
+                region: "este",
+                altitude_range: "0-500",
+                climate_zones: ["tropical"],
+                description: "El aloe vera es conocido por sus propiedades regenerativas para la skin y su capacidad para aliviar quemaduras y irritaciones.",
+                medicinal_uses: "Quemaduras, heridas, psoriasis, acné y problemas digestivos en forma de jugo.",
+                preparation_methods: "Aplicación directa del gel de la hoja sobre la piel, o consumo del jugo para problemas digestivos.",
+                precautions: "No consumir la parte verde de la hoja, solo el gel transparente interior."
+            },
+            {
+                id: 4,
+                common_name: "Sáuco",
+                scientific_name: "Sambucus nigra",
+                image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
+                properties: ["Antiviral", "Expectorante", "Inmunoestimulante"],
+                distribution: "Regiones templadas de Europa y América",
+                region: "norte",
+                altitude_range: "0-1500",
+                climate_zones: ["templado"],
+                description: "El sáuco es conocido por sus propiedades antivirales y se utiliza comúnmente para aliviar síntomas de resfriados y gripes.",
+                medicinal_uses: "Jarabe para resfriados, gripes y afecciones respiratorias.",
+                preparation_methods: "Infusión de flores o bayas, jarabe de bayas cocidas con miel.",
+                precautions: "No consumir bayas crudas ya que pueden ser tóxicas. Solo usar bayas cocidas."
+            }
+        ];
+        
+        allPlants = examplePlants;
+        displayPlants(examplePlants, false);
+        updateMapWithPlants(examplePlants, false);
+        
+        // Mostrar mensaje informativo
+        Swal.fire({
+            title: 'Plantas de ejemplo',
+            text: 'Se están mostrando plantas de ejemplo debido a problemas de conexión.',
+            icon: 'info',
+            confirmButtonText: 'Entendido'
+        });
+    }
+
+    // Función para mostrar plantas en la interfaz
+    function displayPlants(plants, fromTrefle = false) {
+        const plantsContainer = document.getElementById('plantsContainer');
+        
+        if (plants.length === 0) {
+            plantsContainer.innerHTML = `
+                <div class="status-message">
+                    <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                    <span>No se encontraron plantas que coincidan con tu búsqueda.</span>
+                </div>
+            `;
+            return;
+        }
+        
+        plantsContainer.innerHTML = '';
+        
+        plants.forEach((plant, index) => {
+            const plantCard = document.createElement('div');
+            plantCard.className = 'plant-card fade-in';
+            plantCard.style.animationDelay = `${index * 0.1}s`;
+            plantCard.onclick = () => showPlantDetails(plant);
+            
+            const imageUrl = plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3';
+            
+            plantCard.innerHTML = `
+                <div class="plant-image" style="background-image: url('${imageUrl}')">
+                    <div class="plant-badge ${fromTrefle ? 'trefle-badge' : ''}">${fromTrefle ? 'Trefle' : 'Medicinal'}</div>
+                </div>
+                <div class="plant-info">
+                    <div class="plant-name">${plant.common_name || 'Planta sin nombre común'}</div>
+                    <div class="plant-scientific">${plant.scientific_name || 'Nombre científico no disponible'}</div>
+                    <div class="plant-properties">
+                        ${plant.properties && Array.isArray(plant.properties) ? 
+                            plant.properties.map(prop => `<span class="property-tag">${prop}</span>`).join('') : 
+                            '<span class="property-tag">Medicinal</span>'
+                        }
                     </div>
-                `;
-                
-                // Usar un proxy CORS para evitar el error
-                const proxyUrl = 'https://corsproxy.io/?';
-                const trefleUrl = `https://trefle.io/api/v1/plants/search?token=${TREFLETOKEN}&q=${encodeURIComponent(query)}`;
-                
-                const response = await fetch(proxyUrl + encodeURIComponent(trefleUrl));
-                
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data && data.data && data.data.length > 0) {
-                    // Convertir los datos de Trefle al formato de nuestra aplicación
-                    const treflePlants = data.data.map((plant, index) => {
-                        // Generar coordenadas aleatorias cerca del usuario para el mapa
-                        const offsetLat = userLocation ? (Math.random() - 0.5) * 0.5 : (Math.random() - 0.5);
-                        const offsetLng = userLocation ? (Math.random() - 0.5) * 0.5 : (Math.random() - 0.5);
-                        
-                        return {
-                            id: plant.id || Date.now() + index,
-                            common_name: plant.common_name || 'Nombre no disponible',
-                            scientific_name: plant.scientific_name || 'Nombre científico no disponible',
-                            image_url: plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
-                            properties: ["Medicinal"], // Valor por defecto
-                            distribution: plant.distribution || 'Distribución no especificada',
-                            region: 'desconocida',
-                            altitude_range: '0-500',
-                            climate_zones: ['templado'],
-                            description: plant.family ? `Pertenece a la familia ${plant.family}` : 'Planta medicinal con diversas propiedades.',
-                            medicinal_uses: 'Usos medicinales tradicionales.',
-                            preparation_methods: 'Consulta con un especialista para métodos de preparación adecuados.',
-                            precautions: 'Precauciones generales para plantas medicinales.',
-                            // Coordenadas para el mapa
-                            latitude: userLocation ? userLocation.lat + offsetLat : 40.41 + offsetLat,
-                            longitude: userLocation ? userLocation.lng + offsetLng : -3.70 + offsetLng,
-                            fromTrefle: true // Marcar como planta de Trefle
-                        };
+                    <div class="plant-region">
+                        <i class="fas fa-map-marker-alt"></i>
+                        ${plant.region ? `Región ${plant.region.charAt(0).toUpperCase() + plant.region.slice(1)}` : 'Región no especificada'}
+                    </div>
+                    ${fromTrefle ? `
+                        <div class="trefle-source">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Información proporcionada por Trefle</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            plantsContainer.appendChild(plantCard);
+        });
+    }
+
+    // Mostrar detalles de la planta
+    function showPlantDetails(plant) {
+        Swal.fire({
+            title: plant.common_name || 'Planta Medicinal',
+            html: `
+                <div style="text-align: left;">
+                    ${plant.fromTrefle ? `<p style="color: #9b59b6; font-weight: bold;"><i class="fas fa-external-link-alt"></i> Información proporcionada por Trefle</p>` : ''}
+                    <p><strong>Nombre científico:</strong> ${plant.scientific_name || 'No disponible'}</p>
+                    <p><strong>Propiedades:</strong> ${plant.properties ? (Array.isArray(plant.properties) ? plant.properties.join(', ') : plant.properties) : 'Medicinal'}</p>
+                    <p><strong>Distribución:</strong> ${plant.distribution || 'No disponible'}</p>
+                    <p><strong>Región:</strong> ${plant.region ? plant.region.charAt(0).toUpperCase() + plant.region.slice(1) : 'No especificada'}</p>
+                    <p><strong>Rango de altitud:</strong> ${plant.altitude_range || 'No especificado'}</p>
+                    <p><strong>Zonas climáticas:</strong> ${plant.climate_zones ? (Array.isArray(plant.climate_zones) ? plant.climate_zones.join(', ') : plant.climate_zones) : 'No especificado'}</p>
+                    ${plant.description ? `<p><strong>Descripción:</strong> ${plant.description}</p>` : ''}
+                    ${plant.medicinal_uses ? `<p><strong>Usos medicinales:</strong> ${plant.medicinal_uses}</p>` : ''}
+                    ${plant.preparation_methods ? `<p><strong>Métodos de preparación:</strong> ${plant.preparation_methods}</p>` : ''}
+                    ${plant.precautions ? `<p><strong>Precauciones:</strong> ${plant.precautions}</p>` : ''}
+                </div>
+            `,
+            imageUrl: plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
+            imageWidth: 300,
+            imageHeight: 200,
+            imageAlt: plant.common_name,
+            confirmButtonText: 'Cerrar',
+            background: 'var(--card-background)',
+            color: 'var(--text-primary)',
+            confirmButtonColor: 'var(--primary)',
+            width: '700px'
+        });
+    }
+
+    // Inicializar el mapa
+    function initMap() {
+        map = L.map('map').setView([40.416775, -3.703790], 5);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        getUserLocation();
+    }
+
+    // Obtener la ubicación del usuario
+    function getUserLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    
+                    map.setView([userLocation.lat, userLocation.lng], 10);
+                    
+                    if (userLocationMarker) {
+                        map.removeLayer(userLocationMarker);
+                    }
+                    
+                    // Crear un icono personalizado para la ubicación del usuario
+                    const userIcon = L.divIcon({
+                        className: 'user-location-marker',
+                        html: '<div style="background-color: #ff6b6b; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>',
+                        iconSize: [22, 22],
+                        iconAnchor: [11, 11]
                     });
                     
-                    allPlants = treflePlants;
-                    displayPlants(treflePlants, true);
-                    updateMapWithPlants(treflePlants, true);
-                    
-                    // Mostrar mensaje indicando que son resultados de Trefle
-                    if (treflePlants.length > 0) {
-                        Swal.fire({
-                            title: 'Resultados de Trefle',
-                            text: `Se encontraron ${treflePlants.length} plantas en la base de datos de Trefle.`,
-                            icon: 'info',
-                            confirmButtonText: 'Entendido'
-                        });
-                    }
-                } else {
-                    plantsContainer.innerHTML = `
-                        <div class="status-message">
-                            <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
-                            <span>No se encontraron plantas en Trefle para "${query}".</span>
-                        </div>
-                    `;
-                    allPlants = [];
-                    updateMapWithPlants([], false);
-                }
-            } catch (error) {
-                console.error('Error buscando en Trefle:', error);
-                plantsContainer.innerHTML = `
-                    <div class="status-message error-message">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
-                        <span>Error al conectar con Trefle. Cargando plantas de ejemplo...</span>
-                    </div>
-                `;
-                
-                // Mostrar plantas de ejemplo como último recurso
-                setTimeout(() => {
-                    loadExamplePlants();
-                }, 2000);
-            }
-        }
-
-        // Cargar plantas de ejemplo si Supabase falla
-        function loadExamplePlants() {
-            const examplePlants = [
-                {
-                    id: 1,
-                    common_name: "Manzanilla",
-                    scientific_name: "Matricaria chamomilla",
-                    image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
-                    properties: ["Digestiva", "Relajante", "Antiinflamatoria"],
-                    distribution: "Amplia distribución en Europa y Asia",
-                    region: "norte",
-                    altitude_range: "500-1500",
-                    climate_zones: ["templado"],
-                    description: "La manzanilla es conocida por sus propiedades calmantes y se utiliza comúnmente para aliviar problemas digestivos y promover la relajación.",
-                    medicinal_uses: "Infusión para problemas digestivos, ansiedad e irritaciones de la piel.",
-                    preparation_methods: "Infusión con 1 cucharada de flores secas por taza de agua hirviendo, dejar reposar 5 minutos.",
-                    precautions: "Puede causar reacciones alérgicas en personas sensibles a las plantas de la familia de las margaritas."
+                    userLocationMarker = L.marker([userLocation.lat, userLocation.lng], {icon: userIcon})
+                        .addTo(map)
+                        .bindPopup('<b>Tu ubicación actual</b>')
+                        .openPopup();
+                        
+                    searchPlants();
                 },
-                {
-                    id: 2,
-                    common_name: "Menta",
-                    scientific_name: "Mentha spicata",
-                    image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
-                    properties: ["Digestiva", "Refrescante", "Analgésica"],
-                    distribution: "Regiones templadas de todo el mundo",
-                    region: "sur",
-                    altitude_range: "0-500",
-                    climate_zones: ["templado"],
-                    description: "La menta es una hierba aromática muy popular por su efecto refrescante y su capacidad para aliviar problemas digestivos.",
-                    medicinal_uses: "Alivio de indigestión, náuseas, dolor de cabeza y congestión respiratoria.",
-                    preparation_methods: "Infusión con hojas frescas o secas, inhalación de vapores para congestión.",
-                    precautions: "Evitar en niños pequeños y en casos de reflujo gastroesofágico severo."
+                function(error) {
+                    console.log('No se pudo obtener tu ubicación. Usando ubicación por defecto.');
+                    searchPlants();
                 },
-                {
-                    id: 3,
-                    common_name: "Aloe Vera",
-                    scientific_name: "Aloe barbadensis miller",
-                    image_url: "https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3",
-                    properties: ["Cicatrizante", "Hidratante", "Antiinflamatoria"],
-                    distribution: "Regiones tropicales y subtropicales",
-                    region: "este",
-                    altitude_range: "0-500",
-                    climate_zones: ["tropical"],
-                    description: "El aloe vera es conocido por sus propiedades regenerativas para la skin y su capacidad para aliviar quemaduras y irritaciones.",
-                    medicinal_uses: "Quemaduras, heridas, psoriasis, acné y problemas digestivos en forma de jugo.",
-                    preparation_methods: "Aplicación directa del gel de la hoja sobre la piel, o consumo del jugo para problemas digestivos.",
-                    precautions: "No consumir la parte verde de la hoja, solo el gel transparente interior."
-                }
-            ];
-            
-            allPlants = examplePlants;
-            displayPlants(examplePlants, false);
-            updateMapWithPlants(examplePlants, false);
+                { timeout: 10000 }
+            );
+        } else {
+            console.log('La geolocalización no es compatible con tu navegador.');
+            searchPlants();
         }
+    }
 
-        // Función para mostrar plantas en la interfaz
-        function displayPlants(plants, fromTrefle = false) {
-            const plantsContainer = document.getElementById('plantsContainer');
+    // Actualizar el mapa con las plantas
+    function updateMapWithPlants(plants, fromTrefle = false) {
+        // Limpiar marcadores anteriores (excepto el del usuario)
+        plantMarkers.forEach(marker => {
+            map.removeLayer(marker);
+        });
+        plantMarkers = [];
+        
+        // Crear un icono personalizado para las plantas
+        const plantIcon = L.divIcon({
+            className: 'plant-marker',
+            html: `<div style="background-color: ${fromTrefle ? '#9b59b6' : '#2a9d8f'}; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+        
+        plants.forEach(plant => {
+            const offsetLat = (Math.random() - 0.5) * 0.5;
+            const offsetLng = (Math.random() - 0.5) * 0.5;
             
-            if (plants.length === 0) {
-                plantsContainer.innerHTML = `
-                    <div class="status-message">
-                        <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 15px;"></i>
-                        <span>No se encontraron plantas que coincidan con tu búsqueda.</span>
-                    </div>
-                `;
+            const plantLat = plant.latitude || (userLocation ? userLocation.lat + offsetLat : 40.41 + offsetLat);
+            const plantLng = plant.longitude || (userLocation ? userLocation.lng + offsetLng : -3.70 + offsetLng);
+            
+            const marker = L.marker([plantLat, plantLng], {icon: plantIcon}).addTo(map);
+            
+            // Crear un botón personalizado para el popup
+            const popupContent = document.createElement('div');
+            popupContent.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 5px; color: ${fromTrefle ? '#9b59b6' : '#2a9d8f'}; font-size: 1.1rem;">${plant.common_name || 'Planta medicinal'}</div>
+                <div><i>${plant.scientific_name || 'Nombre científico no disponible'}</i></div>
+                ${fromTrefle ? '<div style="font-size: 0.8rem; margin-top: 5px; color: #666;">(Desde Trefle)</div>' : ''}
+                <button style="margin-top: 8px; padding: 8px 16px; background: ${fromTrefle ? '#9b59b6' : '#2a9d8f'}; color: white; border: none; border-radius: 6px; cursor: pointer; width: 100%;">
+                    Ver detalles
+                </button>
+            `;
+            
+            const button = popupContent.querySelector('button');
+            button.onclick = (e) => {
+                e.stopPropagation();
+                showPlantDetails(plant);
+            };
+            
+            marker.bindPopup(popupContent);
+            plantMarkers.push(marker);
+        });
+    }
+
+    // Función para añadir una nueva planta a Supabase
+    async function addPlant(plantData) {
+        try {
+            // Convertir propiedades y zonas climáticas a arrays
+            plantData.properties = plantData.properties.split(',').map(item => item.trim());
+            plantData.climate_zones = plantData.climate_zones.split(',').map(item => item.trim());
+            
+            const { data, error } = await supabase
+                .from('medicinal_plants')
+                .insert([plantData])
+                .select();
+            
+            if (error) {
+                console.error('Error insertando planta:', error);
+                Swal.fire('Error', 'No se pudo guardar la planta: ' + error.message, 'error');
                 return;
             }
             
-            plantsContainer.innerHTML = '';
+            Swal.fire('Éxito', 'Planta añadida correctamente', 'success');
+            document.getElementById('plantForm').reset();
             
-            plants.forEach((plant, index) => {
-                const plantCard = document.createElement('div');
-                plantCard.className = 'plant-card fade-in';
-                plantCard.style.animationDelay = `${index * 0.1}s`;
-                plantCard.onclick = () => showPlantDetails(plant);
-                
-                const imageUrl = plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3';
-                
-                plantCard.innerHTML = `
-                    <div class="plant-image" style="background-image: url('${imageUrl}')">
-                        <div class="plant-badge ${fromTrefle ? 'trefle-badge' : ''}">${fromTrefle ? 'Trefle' : 'Medicinal'}</div>
-                    </div>
-                    <div class="plant-info">
-                        <div class="plant-name">${plant.common_name || 'Planta sin nombre común'}</div>
-                        <div class="plant-scientific">${plant.scientific_name || 'Nombre científico no disponible'}</div>
-                        <div class="plant-properties">
-                            ${plant.properties && Array.isArray(plant.properties) ? 
-                                plant.properties.map(prop => `<span class="property-tag">${prop}</span>`).join('') : 
-                                '<span class="property-tag">Medicinal</span>'
-                            }
-                        </div>
-                        <div class="plant-region">
-                            <i class="fas fa-map-marker-alt"></i>
-                            ${plant.region ? `Región ${plant.region.charAt(0).toUpperCase() + plant.region.slice(1)}` : 'Región no especificada'}
-                        </div>
-                        ${fromTrefle ? `
-                            <div class="trefle-source">
-                                <i class="fas fa-external-link-alt"></i>
-                                <span>Información proporcionada por Trefle</span>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                
-                plantsContainer.appendChild(plantCard);
-            });
-        }
-
-        // Mostrar detalles de la planta
-        function showPlantDetails(plant) {
-            Swal.fire({
-                title: plant.common_name || 'Planta Medicinal',
-                html: `
-                    <div style="text-align: left;">
-                        ${plant.fromTrefle ? `<p style="color: #9b59b6; font-weight: bold;"><i class="fas fa-external-link-alt"></i> Información proporcionada por Trefle</p>` : ''}
-                        <p><strong>Nombre científico:</strong> ${plant.scientific_name || 'No disponible'}</p>
-                        <p><strong>Propiedades:</strong> ${plant.properties ? (Array.isArray(plant.properties) ? plant.properties.join(', ') : plant.properties) : 'Medicinal'}</p>
-                        <p><strong>Distribución:</strong> ${plant.distribution || 'No disponible'}</p>
-                        <p><strong>Región:</strong> ${plant.region ? plant.region.charAt(0).toUpperCase() + plant.region.slice(1) : 'No especificada'}</p>
-                        <p><strong>Rango de altitud:</strong> ${plant.altitude_range || 'No especificado'}</p>
-                        <p><strong>Zonas climáticas:</strong> ${plant.climate_zones ? (Array.isArray(plant.climate_zones) ? plant.climate_zones.join(', ') : plant.climate_zones) : 'No especificado'}</p>
-                        ${plant.description ? `<p><strong>Descripción:</strong> ${plant.description}</p>` : ''}
-                        ${plant.medicinal_uses ? `<p><strong>Usos medicinales:</strong> ${plant.medicinal_uses}</p>` : ''}
-                        ${plant.preparation_methods ? `<p><strong>Métodos de preparación:</strong> ${plant.preparation_methods}</p>` : ''}
-                        ${plant.precautions ? `<p><strong>Precauciones:</strong> ${plant.precautions}</p>` : ''}
-                    </div>
-                `,
-                imageUrl: plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
-                imageWidth: 300,
-                imageHeight: 200,
-                imageAlt: plant.common_name,
-                confirmButtonText: 'Cerrar',
-                background: 'var(--card-background)',
-                color: 'var(--text-primary)',
-                confirmButtonColor: 'var(--primary)',
-                width: '700px'
-            });
-        }
-
-        // Inicializar el mapa
-        function initMap() {
-            map = L.map('map').setView([40.416775, -3.703790], 5);
+            // Ocultar panel de administración
+            document.getElementById('adminForm').classList.remove('active');
+            document.getElementById('addPlantBtn').innerHTML = '<i class="fas fa-plus"></i> <span>Agregar Planta</span>';
             
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            // Recargar las plantas
+            performSearch();
             
-            getUserLocation();
+        } catch (error) {
+            console.error('Error añadiendo planta:', error);
+            Swal.fire('Error', 'Ocurrió un error inesperado: ' + error.message, 'error');
         }
+    }
 
-        // Obtener la ubicación del usuario
-        function getUserLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        userLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-                        
-                        map.setView([userLocation.lat, userLocation.lng], 10);
-                        
-                        if (userLocationMarker) {
-                            map.removeLayer(userLocationMarker);
-                        }
-                        
-                        // Crear un icono personalizado para la ubicación del usuario
-                        const userIcon = L.divIcon({
-                            className: 'user-location-marker',
-                            html: '<div style="background-color: #ff6b6b; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>',
-                            iconSize: [22, 22],
-                            iconAnchor: [11, 11]
-                        });
-                        
-                        userLocationMarker = L.marker([userLocation.lat, userLocation.lng], {icon: userIcon})
-                            .addTo(map)
-                            .bindPopup('<b>Tu ubicación actual</b>')
-                            .openPopup();
-                            
-                        searchPlants();
-                    },
-                    function(error) {
-                        console.log('No se pudo obtener tu ubicación. Usando ubicación por defecto.');
-                        searchPlants();
-                    },
-                    { timeout: 10000 }
-                );
+    // Inicializar la aplicación
+    window.onload = function() {
+        initMap();
+        
+        // Toggle de filtros avanzados
+        const filterToggle = document.getElementById('filterToggle');
+        const advancedFilters = document.getElementById('advancedFilters');
+        
+        filterToggle.addEventListener('click', function() {
+            advancedFilters.classList.toggle('active');
+            
+            if (advancedFilters.classList.contains('active')) {
+                filterToggle.innerHTML = '<i class="fas fa-times"></i> <span class="filter-text">Cerrar Filtros</span>';
             } else {
-                console.log('La geolocalización no es compatible con tu navegador.');
-                searchPlants();
+                filterToggle.innerHTML = '<i class="fas fa-filter"></i> <span class="filter-text">Filtros</span>';
             }
-        }
-
-        // Actualizar el mapa con las plantas
-        function updateMapWithPlants(plants, fromTrefle = false) {
-            // Limpiar marcadores anteriores (excepto el del usuario)
-            plantMarkers.forEach(marker => {
-                map.removeLayer(marker);
-            });
-            plantMarkers = [];
+        });
+        
+        // Botón para agregar plantas
+        const addPlantBtn = document.getElementById('addPlantBtn');
+        const adminForm = document.getElementById('adminForm');
+        
+        addPlantBtn.addEventListener('click', function() {
+            adminForm.classList.toggle('active');
             
-            // Crear un icono personalizado para las plantas
-            const plantIcon = L.divIcon({
-                className: 'plant-marker',
-                html: `<div style="background-color: ${fromTrefle ? '#9b59b6' : '#2a9d8f'}; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-            
-            plants.forEach(plant => {
-                const offsetLat = (Math.random() - 0.5) * 0.5;
-                const offsetLng = (Math.random() - 0.5) * 0.5;
-                
-                const plantLat = plant.latitude || (userLocation ? userLocation.lat + offsetLat : 40.41 + offsetLat);
-                const plantLng = plant.longitude || (userLocation ? userLocation.lng + offsetLng : -3.70 + offsetLng);
-                
-                const marker = L.marker([plantLat, plantLng], {icon: plantIcon}).addTo(map);
-                
-                // Crear un botón personalizado para el popup
-                const popupContent = document.createElement('div');
-                popupContent.innerHTML = `
-                    <div style="font-weight: bold; margin-bottom: 5px; color: ${fromTrefle ? '#9b59b6' : '#2a9d8f'}; font-size: 1.1rem;">${plant.common_name || 'Planta medicinal'}</div>
-                    <div><i>${plant.scientific_name || 'Nombre científico no disponible'}</i></div>
-                    ${fromTrefle ? '<div style="font-size: 0.8rem; margin-top: 5px; color: #666;">(Desde Trefle)</div>' : ''}
-                    <button style="margin-top: 8px; padding: 8px 16px; background: ${fromTrefle ? '#9b59b6' : '#2a9d8f'}; color: white; border: none; border-radius: 6px; cursor: pointer; width: 100%;">
-                        Ver detalles
-                    </button>
-                `;
-                
-                const button = popupContent.querySelector('button');
-                button.onclick = (e) => {
-                    e.stopPropagation();
-                    showPlantDetails(plant);
-                };
-                
-                marker.bindPopup(popupContent);
-                plantMarkers.push(marker);
-            });
-        }
-
-        // Función para añadir una nueva planta a Supabase
-        async function addPlant(plantData) {
-            try {
-                // Convertir propiedades y zonas climáticas a arrays
-                plantData.properties = plantData.properties.split(',').map(item => item.trim());
-                plantData.climate_zones = plantData.climate_zones.split(',').map(item => item.trim());
-                
-                const { data, error } = await supabase
-                    .from('medicinal_plants')
-                    .insert([plantData])
-                    .select();
-                
-                if (error) {
-                    console.error('Error insertando planta:', error);
-                    Swal.fire('Error', 'No se pudo guardar la planta: ' + error.message, 'error');
-                    return;
-                }
-                
-                Swal.fire('Éxito', 'Planta añadida correctamente', 'success');
-                document.getElementById('plantForm').reset();
-                
-                // Ocultar panel de administración
-                document.getElementById('adminForm').classList.remove('active');
-                document.getElementById('addPlantBtn').innerHTML = '<i class="fas fa-plus"></i> <span>Agregar Planta</span>';
-                
-                // Recargar las plantas
+            if (adminForm.classList.contains('active')) {
+                addPlantBtn.innerHTML = '<i class="fas fa-times"></i> <span>Cerrar Formulario</span>';
+            } else {
+                addPlantBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Agregar Planta</span>';
+            }
+        });
+        
+        // Botón de ayuda
+        const helpBtn = document.getElementById('helpBtn');
+        helpBtn.addEventListener('click', showHelp);
+        
+        // Event listeners para búsqueda
+        const searchButton = document.getElementById('searchButton');
+        const searchInput = document.getElementById('searchInput');
+        
+        searchButton.addEventListener('click', function() {
+            performSearch();
+        });
+        
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
                 performSearch();
-                
-            } catch (error) {
-                console.error('Error añadiendo planta:', error);
-                Swal.fire('Error', 'Ocurrió un error inesperado: ' + error.message, 'error');
             }
+        });
+        
+        // Función para realizar la búsqueda con todos los filtros
+        function performSearch() {
+            const query = searchInput.value;
+            const filters = {
+                property: document.getElementById('propertyFilter').value,
+                region: document.getElementById('zoneFilter').value,
+                altitude: document.getElementById('altitudeFilter').value,
+                climate: document.getElementById('climateFilter').value
+            };
+            
+            searchPlants(query, filters);
         }
-
-        // Inicializar la aplicación
-        window.onload = function() {
-            initMap();
+        
+        // Event listeners para filtros
+        document.getElementById('zoneFilter').addEventListener('change', performSearch);
+        document.getElementById('altitudeFilter').addEventListener('change', performSearch);
+        document.getElementById('propertyFilter').addEventListener('change', performSearch);
+        document.getElementById('climateFilter').addEventListener('change', performSearch);
+        
+        // Formulario para añadir plantas
+        document.getElementById('plantForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            // Toggle de filtros avanzados
-            const filterToggle = document.getElementById('filterToggle');
-            const advancedFilters = document.getElementById('advancedFilters');
+            const plantData = {
+                common_name: document.getElementById('common_name').value,
+                scientific_name: document.getElementById('scientific_name').value,
+                image_url: document.getElementById('image_url').value,
+                properties: document.getElementById('properties').value,
+                distribution: document.getElementById('distribution').value,
+                region: document.getElementById('region').value,
+                altitude_range: document.getElementById('altitude_range').value,
+                climate_zones: document.getElementById('climate_zones').value,
+                description: document.getElementById('description').value,
+                medicinal_uses: document.getElementById('medicinal_uses').value,
+                preparation_methods: document.getElementById('preparation_methods').value,
+                precautions: document.getElementById('precautions').value
+            };
             
-            filterToggle.addEventListener('click', function() {
-                advancedFilters.classList.toggle('active');
-                
-                if (advancedFilters.classList.contains('active')) {
-                    filterToggle.innerHTML = '<i class="fas fa-times"></i> <span class="filter-text">Cerrar Filtros</span>';
-                } else {
-                    filterToggle.innerHTML = '<i class="fas fa-filter"></i> <span class="filter-text">Filtros</span>';
-                }
-            });
-            
-            // Botón para agregar plantas
-            const addPlantBtn = document.getElementById('addPlantBtn');
-            const adminForm = document.getElementById('adminForm');
-            
-            addPlantBtn.addEventListener('click', function() {
-                adminForm.classList.toggle('active');
-                
-                if (adminForm.classList.contains('active')) {
-                    addPlantBtn.innerHTML = '<i class="fas fa-times"></i> <span>Cerrar Formulario</span>';
-                } else {
-                    addPlantBtn.innerHTML = '<i class="fas fa-plus"></i> <span>Agregar Planta</span>';
-                }
-            });
-            
-            // Botón de ayuda
-            const helpBtn = document.getElementById('helpBtn');
-            helpBtn.addEventListener('click', showHelp);
-            
-            // Event listeners para búsqueda
-            const searchButton = document.getElementById('searchButton');
-            const searchInput = document.getElementById('searchInput');
-            
-            searchButton.addEventListener('click', function() {
-                performSearch();
-            });
-            
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-            
-            // Función para realizar la búsqueda con todos los filtros
-            function performSearch() {
-                const query = searchInput.value;
-                const filters = {
-                    property: document.getElementById('propertyFilter').value,
-                    region: document.getElementById('zoneFilter').value,
-                    altitude: document.getElementById('altitudeFilter').value,
-                    climate: document.getElementById('climateFilter').value
-                };
-                
-                searchPlants(query, filters);
-            }
-            
-            // Event listeners para filtros
-            document.getElementById('zoneFilter').addEventListener('change', performSearch);
-            document.getElementById('altitudeFilter').addEventListener('change', performSearch);
-            document.getElementById('propertyFilter').addEventListener('change', performSearch);
-            document.getElementById('climateFilter').addEventListener('change', performSearch);
-            
-            // Formulario para añadir plantas
-            document.getElementById('plantForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const plantData = {
-                    common_name: document.getElementById('common_name').value,
-                    scientific_name: document.getElementById('scientific_name').value,
-                    image_url: document.getElementById('image_url').value,
-                    properties: document.getElementById('properties').value,
-                    distribution: document.getElementById('distribution').value,
-                    region: document.getElementById('region').value,
-                    altitude_range: document.getElementById('altitude_range').value,
-                    climate_zones: document.getElementById('climate_zones').value,
-                    description: document.getElementById('description').value,
-                    medicinal_uses: document.getElementById('medicinal_uses').value,
-                    preparation_methods: document.getElementById('preparation_methods').value,
-                    precautions: document.getElementById('precautions').value
-                };
-                
-                addPlant(plantData);
-            });
-        };
-    </script>
+            addPlant(plantData);
+        });
+    };
+</script>
 </body>
 </html>
