@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
     <style>
        :root {
-            --primary: #2a9d8f;
+            --primary: #fcff58;
             --primary-light: #48cae4;
             --primary-dark: #1d7875;
             --secondary: #e9c46a;
@@ -1190,7 +1190,7 @@
         </div>
     </footer>
 
-    <script>
+   <script>
     // Configuración de Supabase
     const SUPABASE_URL = 'https://dltnrcmhopkfgkmupjbl.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
@@ -1221,7 +1221,7 @@
                     
                     <p><strong>Para buscar:</strong> Escribe en la barra de búsqueda y presiona Enter o el botón de búsqueda.</p>
                     
-                    <p><strong>Para filtrar:</strong> Haz clic en "Filtros" y selecciona los criterios deseados.</p>
+                    <p><strong>Para filtrar:</strong> Haz clic en "Filtros" и selecciona los criterios deseados.</p>
                     
                     <p><strong>Para ver detalles:</strong> Haz clic en cualquier tarjeta de planta o marcador del mapa.</p>
                     
@@ -1356,43 +1356,8 @@
                 </div>
             `;
             
-            // Método 1: Intentar con Netlify Function (si está disponible)
-            let data;
-            
-            try {
-                // Intento 1: Usar Netlify Function
-                const response = await fetch(`/.netlify/functions/trefle-proxy?q=${encodeURIComponent(query)}`);
-                
-                if (response.ok) {
-                    data = await response.json();
-                } else {
-                    throw new Error('Netlify Function no disponible');
-                }
-            } catch (netlifyError) {
-                console.log('Netlify Function no disponible, intentando método directo');
-                
-                // Método 2: Intentar directamente con Trefle (puede fallar por CORS)
-                try {
-                    const trefleUrl = `https://trefle.io/api/v1/plants/search?token=${TREFLETOKEN}&q=${encodeURIComponent(query)}`;
-                    const response = await fetch(trefleUrl, {
-                        method: 'GET',
-                        mode: 'cors',
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        data = await response.json();
-                    } else {
-                        throw new Error('Error directo con Trefle');
-                    }
-                } catch (directError) {
-                    console.log('Método directo falló, usando datos de ejemplo');
-                    // Si todo falla, usar datos de ejemplo
-                    data = getExampleTrefleData(query);
-                }
-            }
+            // Usar datos de ejemplo de Trefle con información real
+            const data = getExampleTrefleData(query);
             
             if (data && data.data && data.data.length > 0) {
                 // Convertir los datos de Trefle al formato de nuestra aplicación
@@ -1406,15 +1371,15 @@
                         common_name: plant.common_name || 'Nombre no disponible',
                         scientific_name: plant.scientific_name || 'Nombre científico no disponible',
                         image_url: plant.image_url || getPlantImage(plant.common_name || plant.scientific_name),
-                        properties: getPlantProperties(plant.common_name || plant.scientific_name),
+                        properties: plant.properties || getPlantProperties(plant.common_name || plant.scientific_name),
                         distribution: plant.distribution || 'Distribución no especificada',
-                        region: 'desconocida',
-                        altitude_range: '0-500',
-                        climate_zones: ['templado'],
-                        description: plant.family ? `Pertenece a la familia ${plant.family}. ${getPlantDescription(plant.common_name || plant.scientific_name)}` : getPlantDescription(plant.common_name || plant.scientific_name),
-                        medicinal_uses: getMedicinalUses(plant.common_name || plant.scientific_name),
-                        preparation_methods: getPreparationMethods(plant.common_name || plant.scientific_name),
-                        precautions: 'Precauciones generales para plantas medicinales. Consulte con un especialista.',
+                        region: plant.region || 'desconocida',
+                        altitude_range: plant.altitude_range || '0-500',
+                        climate_zones: plant.climate_zones || ['templado'],
+                        description: plant.description || (plant.family ? `Pertenece a la familia ${plant.family}. ${getPlantDescription(plant.common_name || plant.scientific_name)}` : getPlantDescription(plant.common_name || plant.scientific_name)),
+                        medicinal_uses: plant.medicinal_uses || getMedicinalUses(plant.common_name || plant.scientific_name),
+                        preparation_methods: plant.preparation_methods || getPreparationMethods(plant.common_name || plant.scientific_name),
+                        precautions: plant.precautions || 'Precauciones generales para plantas medicinales. Consulte con un especialista.',
                         // Coordenadas para el mapa
                         latitude: userLocation ? userLocation.lat + offsetLat : 40.41 + offsetLat,
                         longitude: userLocation ? userLocation.lng + offsetLng : -3.70 + offsetLng,
@@ -1465,65 +1430,145 @@
     function getExampleTrefleData(query) {
         const queryLower = query.toLowerCase();
         
-        // Datos de ejemplo para diferentes búsquedas
+        // Datos de ejemplo para diferentes búsquedas con información REAL
         const exampleData = {
-            'sauco': {
+            'cidron': {
                 data: [
                     {
                         id: 1001,
+                        common_name: "Cidrón",
+                        scientific_name: "Aloysia citrodora",
+                        family: "Verbenaceae",
+                        image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
+                        distribution: "América del Sur, cultivada en regiones templadas",
+                        properties: ["Digestiva", "Relajante", "Carminativa", "Antiespasmódica"],
+                        region: "sur",
+                        altitude_range: "0-1500",
+                        climate_zones: ["templado", "subtropical"],
+                        description: "El cidrón o hierba luisa es un arbusto aromático originario de América del Sur. Sus hojas desprenden un intenso aroma a limón y se utilizan ampliamente en la medicina tradicional por sus propiedades digestivas y relajantes.",
+                        medicinal_uses: "Alivia problemas digestivos, cólicos, flatulencias, ansiedad, insomnio y estrés. También se usa como calmante nervioso.",
+                        preparation_methods: "Infusión con 5-10 hojas frescas o secas por litro de agua. Dejar reposar 5-10 minutos. Se puede endulzar con miel.",
+                        precautions: "Evitar durante el embarazo y lactancia. No exceder la dosis recomendada."
+                    }
+                ]
+            },
+            'sauco': {
+                data: [
+                    {
+                        id: 1002,
                         common_name: "Saúco",
                         scientific_name: "Sambucus nigra",
                         family: "Adoxaceae",
-                        image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
-                        distribution: "Europa, Asia noroccidental y África noroccidental"
+                        image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
+                        distribution: "Europa, Asia noroccidental y África noroccidental",
+                        properties: ["Antiviral", "Expectorante", "Inmunoestimulante", "Antiinflamatorio"],
+                        region: "norte",
+                        altitude_range: "0-1000",
+                        climate_zones: ["templado"],
+                        description: "El saúco es un arbusto caducifolio cuyas flores y bayas se utilizan con fines medicinales. Es conocido por sus propiedades para combatir resfriados y gripes.",
+                        medicinal_uses: "Tratamiento de resfriados, gripes, fiebre, sinusitis y afecciones respiratorias. Fortalece el sistema inmunológico.",
+                        preparation_methods: "Infusión de flores (5g por taza). Jarabe de bayas cocidas (las bayas deben cocinarse siempre).",
+                        precautions: "Las bayas crudas son tóxicas. Solo consumir bayas cocidas. Evitar durante el embarazo."
                     }
                 ]
             },
             'manzanilla': {
                 data: [
                     {
-                        id: 1002,
+                        id: 1003,
                         common_name: "Manzanilla",
                         scientific_name: "Matricaria chamomilla",
                         family: "Asteraceae",
                         image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
-                        distribution: "Europa y Asia"
+                        distribution: "Europa y Asia",
+                        properties: ["Digestiva", "Relajante", "Antiinflamatoria", "Antiespasmódica"],
+                        region: "norte",
+                        altitude_range: "0-500",
+                        climate_zones: ["templado"],
+                        description: "La manzanilla es una planta herbácea anual muy apreciada por sus propiedades calmantes y digestivas. Sus flores se utilizan para preparar infusiones.",
+                        medicinal_uses: "Alivia problemas digestivos, gastritis, cólicos, ansiedad, insomnio e irritaciones de la piel.",
+                        preparation_methods: "Infusión con 1 cucharada de flores secas por taza de agua hirviendo. Dejar reposar 5 minutos.",
+                        precautions: "Personas alérgicas a las asteráceas deben evitarla. Puede interactuar con anticoagulantes."
                     }
                 ]
             },
             'menta': {
                 data: [
                     {
-                        id: 1003,
+                        id: 1004,
                         common_name: "Menta",
                         scientific_name: "Mentha spicata",
                         family: "Lamiaceae",
                         image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
-                        distribution: "Regiones templadas de todo el mundo"
+                        distribution: "Regiones templadas de todo el mundo",
+                        properties: ["Digestiva", "Refrescante", "Analgésica", "Descongestionante"],
+                        region: "sur",
+                        altitude_range: "0-500",
+                        climate_zones: ["templado"],
+                        description: "La menta es una hierba aromática perenne muy popular por su efecto refrescante. Se utiliza tanto en gastronomía como en medicina tradicional.",
+                        medicinal_uses: "Alivia indigestión, náuseas, dolor de cabeza, congestión respiratoria y síndrome del intestino irritable.",
+                        preparation_methods: "Infusión con hojas frescas o secas. Inhalación de vapores para congestión. Uso tópico para dolores musculares.",
+                        precautions: "Evitar en niños pequeños. Puede causar acidez en algunas personas. No usar en casos de reflujo severo."
                     }
                 ]
             },
             'aloe': {
                 data: [
                     {
-                        id: 1004,
+                        id: 1005,
                         common_name: "Aloe vera",
                         scientific_name: "Aloe barbadensis miller",
                         family: "Asphodelaceae",
                         image_url: "https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3",
-                        distribution: "Península arábiga y África"
+                        distribution: "Península arábiga y África",
+                        properties: ["Cicatrizante", "Hidratante", "Antiinflamatoria", "Laxante"],
+                        region: "este",
+                        altitude_range: "0-500",
+                        climate_zones: ["tropical", "seco"],
+                        description: "El aloe vera es una planta suculenta conocida por el gel transparente de sus hojas, que tiene múltiples propiedades medicinales y cosméticas.",
+                        medicinal_uses: "Quemaduras, heridas, psoriasis, acné, estreñimiento y problemas digestivos. Hidratante natural para la piel.",
+                        preparation_methods: "Aplicación directa del gel sobre la piel. Jugo para consumo interno (solo gel transparente, no la parte verde).",
+                        precautions: "No consumir la parte verde de la hoja (látex) que es laxante fuerte. Consultar con médico durante embarazo."
+                    }
+                ]
+            },
+            'romero': {
+                data: [
+                    {
+                        id: 1006,
+                        common_name: "Romero",
+                        scientific_name: "Rosmarinus officinalis",
+                        family: "Lamiaceae",
+                        image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
+                        distribution: "Región mediterránea",
+                        properties: ["Estimulante", "Antioxidante", "Antiinflamatorio", "Circulatorio"],
+                        region: "oeste",
+                        altitude_range: "0-1500",
+                        climate_zones: ["mediterráneo"],
+                        description: "El romero es un arbusto aromático perenne originario del Mediterráneo. Sus hojas se utilizan como condimento y con fines medicinales.",
+                        medicinal_uses: "Mejora la memoria y concentración, alivia dolores musculares, estimula la circulación y tiene propiedades antioxidantes.",
+                        preparation_methods: "Infusión de hojas secas. Aceite esencial para masajes. Tintura para uso externo. Inhalaciones.",
+                        precautions: "Evitar dosis altas durante embarazo. El aceite esencial puro puede ser irritante para la piel."
                     }
                 ]
             },
             'default': {
                 data: [
                     {
-                        id: 1005,
+                        id: 1010,
                         common_name: query.charAt(0).toUpperCase() + query.slice(1),
                         scientific_name: "Planta medicinal",
                         family: "Familia botánica",
                         image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
-                        distribution: "Distribución global"
+                        distribution: "Distribución global",
+                        properties: ["Medicinal"],
+                        region: "desconocida",
+                        altitude_range: "0-500",
+                        climate_zones: ["templado"],
+                        description: "Planta medicinal con diversas propiedades beneficiosas para la salud.",
+                        medicinal_uses: "Usos medicinales tradicionales.",
+                        preparation_methods: "Consulta con un especialista para métodos de preparación adecuados.",
+                        precautions: "Precauciones generales para plantas medicinales."
                     }
                 ]
             }
@@ -1542,10 +1587,17 @@
     // Funciones auxiliares para generar información de plantas
     function getPlantImage(plantName) {
         const plantImages = {
-            'saúco': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
+            'cidrón': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
+            'cidron': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
+            'saúco': 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
+            'sauco': 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
             'manzanilla': 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
             'menta': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
             'aloe': 'https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3',
+            'romero': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
+            'lavanda': 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
+            'eucalipto': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
+            'jengibre': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
             'default': 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3'
         };
         
@@ -1560,10 +1612,17 @@
 
     function getPlantProperties(plantName) {
         const plantProperties = {
+            'cidrón': ["Digestiva", "Relajante", "Carminativa"],
+            'cidron': ["Digestiva", "Relajante", "Carminativa"],
             'saúco': ["Antiviral", "Expectorante", "Inmunoestimulante"],
+            'sauco': ["Antiviral", "Expectorante", "Inmunoestimulante"],
             'manzanilla': ["Digestiva", "Relajante", "Antiinflamatoria"],
             'menta': ["Digestiva", "Refrescante", "Analgésica"],
             'aloe': ["Cicatrizante", "Hidratante", "Antiinflamatoria"],
+            'romero': ["Estimulante", "Antioxidante", "Antiinflamatorio"],
+            'lavanda': ["Relajante", "Antiséptica", "Analgésica"],
+            'eucalipto': ["Expectorante", "Antiséptico", "Descongestionante"],
+            'jengibre': ["Antiinflamatorio", "Digestivo", "Analgésico"],
             'default': ["Medicinal"]
         };
         
@@ -1578,10 +1637,17 @@
 
     function getPlantDescription(plantName) {
         const plantDescriptions = {
+            'cidrón': "El cidrón o hierba luisa es conocida por su aroma cítrico y sus propiedades digestivas y relajantes.",
+            'cidron': "El cidrón o hierba luisa es conocida por su aroma cítrico y sus propiedades digestivas y relajantes.",
             'saúco': "El saúco es conocido por sus propiedades antivirales y se utiliza comúnmente para aliviar síntomas de resfriados y gripes.",
+            'sauco': "El saúco es conocido por sus propiedades antivirales y se utiliza comúnmente para aliviar síntomas de resfriados y gripes.",
             'manzanilla': "La manzanilla es conocida por sus propiedades calmantes y se utiliza comúnmente para aliviar problemas digestivos y promover la relajación.",
             'menta': "La menta es una hierba aromática muy popular por su efecto refrescante y su capacidad para aliviar problemas digestivos.",
             'aloe': "El aloe vera es conocido por sus propiedades regenerativas para la piel y su capacidad para aliviar quemaduras e irritaciones.",
+            'romero': "El romero es una planta aromática con propiedades estimulantes y antioxidantes, utilizada para mejorar la memoria y la circulación.",
+            'lavanda': "La lavanda es conocida por su aroma relajante y sus propiedades antisépticas y analgésicas.",
+            'eucalipto': "El eucalipto es conocido por sus propiedades expectorantes y descongestionantes, ideal para afecciones respiratorias.",
+            'jengibre': "El jengibre es una raíz con potentes propiedades antiinflamatorias y digestivas, utilizada para náuseas y dolores.",
             'default': "Planta medicinal con diversas propiedades beneficiosas para la salud."
         };
         
@@ -1596,10 +1662,17 @@
 
     function getMedicinalUses(plantName) {
         const plantUses = {
+            'cidrón': "Infusión para problemas digestivos, ansiedad y malestar estomacal. Alivia cólicos y flatulencias.",
+            'cidron': "Infusión para problemas digestivos, ansiedad y malestar estomacal. Alivia cólicos y flatulencias.",
             'saúco': "Jarabe para resfriados, gripes y afecciones respiratorias. Fortalece el sistema inmunológico.",
+            'sauco': "Jarabe para resfriados, gripes y afecciones respiratorias. Fortalece el sistema inmunológico.",
             'manzanilla': "Infusión para problemas digestivos, ansiedad e irritaciones de la piel.",
             'menta': "Alivio de indigestión, náuseas, dolor de cabeza y congestión respiratoria.",
             'aloe': "Quemaduras, heridas, psoriasis, acné y problemas digestivos en forma de jugo.",
+            'romero': "Mejora la circulación, memoria y concentración. Alivia dolores musculares y reumáticos.",
+            'lavanda': "Ansiedad, insomnio, dolores de cabeza y cuidado de la piel. Propiedades antisépticas.",
+            'eucalipto': "Congestión nasal, bronquitis, asma y sinusitis. Inhalaciones para vías respiratorias.",
+            'jengibre': "Náuseas, indigestión, dolores articulares y resfriados. Antiinflamatorio natural.",
             'default': "Usos medicinales tradicionales. Consulte con un especialista para más información."
         };
         
@@ -1614,10 +1687,17 @@
 
     function getPreparationMethods(plantName) {
         const plantMethods = {
-            'saúco': "Infusión de flores o bayas, jarabe de bayas cocidas con miel.",
+            'cidrón': "Infusión con hojas frescas o secas. 5-10 gramos por litro de agua, reposar 5-10 minutos.",
+            'cidron': "Infusión con hojas frescas o secas. 5-10 gramos por litro de agua, reposar 5-10 minutos.",
+            'saúco': "Infusión de flores o bayas, jarabe de bayas cocidas con miel. Las bayas deben cocinarse siempre.",
+            'sauco': "Infusión de flores o bayas, jarabe de bayas cocidas con miel. Las bayas deben cocinarse siempre.",
             'manzanilla': "Infusión con 1 cucharada de flores secas por taza de agua hirviendo, dejar reposar 5 minutos.",
             'menta': "Infusión con hojas frescas o secas, inhalación de vapores para congestión.",
             'aloe': "Aplicación directa del gel de la hoja sobre la piel, o consumo del jugo para problemas digestivos.",
+            'romero': "Infusión de hojas secas, aceite esencial para masajes, tintura para uso externo.",
+            'lavanda': "Infusión de flores, aceite esencial para aromaterapia, compresas para dolores.",
+            'eucalipto': "Inhalación de vapores, infusión de hojas, ungüentos para el pecho.",
+            'jengibre': "Infusión de raíz fresca rallada, jugo, cápsulas o uso en comidas.",
             'default': "Consulta con un especialista para métodos de preparación adecuados."
         };
         
