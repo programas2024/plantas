@@ -1191,9 +1191,9 @@
     </footer>
 
    <script>
-    // Configuración de Supabase
+    // Configuración de Supabase - VERIFICA ESTOS VALORES
     const SUPABASE_URL = 'https://dltnrcmhopkfgkmupjbl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRsdG5yY21ob3BrZmdrbXVwamJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3NzAwNjEsImV4cCI6MjA3MjM0NjA2MX0.adlL3LhGncIunjlM56GnozbC6caSW_H_0azZ9tgywtI';
     
     // Inicializar Supabase
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1212,9 +1212,9 @@
                     <p><strong>Esta aplicación te permite:</strong></p>
                     <ul>
                         <li>🌿 <strong>Buscar plantas medicinales</strong> por nombre o propiedades</li>
-                        <li>🔍 <strong>Filtrar plantas</strong> por región, altitud, clima o propiedades específicas</li>
+                        <li>🔍 <strong>Filtar plantas</strong> por región, altitud, clima o propiedades específicas</li>
                         <li>🗺️ <strong>Visualizar en un mapa</strong> la ubicación de las plantas</li>
-                        <li>➕ <strong>Agregar nuevas plantas</strong> to the database</li>
+                        <li>➕ <strong>Agregar nuevas plantas</strong> a la base de datos</li>
                         <li>ℹ️ <strong>Ver información detallada</strong> sobre cada planta medicinal</li>
                     </ul>
                     
@@ -1523,6 +1523,18 @@
                 preparation_methods: "Infusión de hojas secas. Aceite esencial para masajes. Tintura para uso externo. Inhalaciones.",
                 precautions: "Evitar dosis altas durante embarazo. El aceite esencial puro puede ser irritante para la piel.",
                 image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3"
+            },
+            'tomate': {
+                properties: ["Antioxidante", "Antiinflamatorio", "Digestivo", "Hidratante"],
+                distribution: "América del Sur, cultivado mundialmente",
+                region: "sur",
+                altitude_range: "0-2000",
+                climate_zones: ["templado", "subtropical"],
+                description: "El tomate es una fruta ampliamente cultivada y consumida, conocida por su alto contenido de licopeno, un potente antioxidante.",
+                medicinal_uses: "Mejora la salud cardiovascular, protege la piel, favorece la digestión y tiene propiedades diuréticas.",
+                preparation_methods: "Consumo crudo en ensaladas, jugos, salsas o cocido en diversos platillos.",
+                precautions: "Personas con problemas de acidez deben consumirlo con moderación. Algunas personas pueden ser alérgicas.",
+                image_url: "https://images.unsplash.com/photo-1561136594-7f68413baa99?ixlib=rb-4.0.3"
             },
             'default': {
                 properties: ["Medicinal"],
