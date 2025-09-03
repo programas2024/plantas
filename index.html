@@ -1332,7 +1332,7 @@
         }
     }
 
-    // Función para buscar plantas en la API de Trefle usando diferentes proxies
+    // Función para buscar plantas en la API de Trefle usando diferentes métodos
     async function searchTreflePlants(query) {
         const plantsContainer = document.getElementById('plantsContainer');
         
@@ -1356,44 +1356,43 @@
                 </div>
             `;
             
-            // Intentar con diferentes proxies CORS
-            const proxyUrls = [
-                'https://api.allorigins.win/raw?url=',
-                'https://corsproxy.io/?',
-                'https://api.codetabs.com/v1/proxy?quest='
-            ];
+            // Método 1: Intentar con Netlify Function (si está disponible)
+            let data;
             
-            const trefleUrl = `https://trefle.io/api/v1/plants/search?token=${TREFLETOKEN}&q=${encodeURIComponent(query)}`;
-            
-            let response;
-            let lastError;
-            
-            // Probar cada proxy hasta que uno funcione
-            for (const proxyUrl of proxyUrls) {
+            try {
+                // Intento 1: Usar Netlify Function
+                const response = await fetch(`/.netlify/functions/trefle-proxy?q=${encodeURIComponent(query)}`);
+                
+                if (response.ok) {
+                    data = await response.json();
+                } else {
+                    throw new Error('Netlify Function no disponible');
+                }
+            } catch (netlifyError) {
+                console.log('Netlify Function no disponible, intentando método directo');
+                
+                // Método 2: Intentar directamente con Trefle (puede fallar por CORS)
                 try {
-                    response = await fetch(proxyUrl + encodeURIComponent(trefleUrl), {
+                    const trefleUrl = `https://trefle.io/api/v1/plants/search?token=${TREFLETOKEN}&q=${encodeURIComponent(query)}`;
+                    const response = await fetch(trefleUrl, {
                         method: 'GET',
+                        mode: 'cors',
                         headers: {
                             'Accept': 'application/json'
                         }
                     });
                     
                     if (response.ok) {
-                        break; // Salir del bucle si la respuesta es exitosa
+                        data = await response.json();
                     } else {
-                        lastError = new Error(`Error HTTP: ${response.status}`);
+                        throw new Error('Error directo con Trefle');
                     }
-                } catch (err) {
-                    lastError = err;
-                    continue; // Continuar con el siguiente proxy
+                } catch (directError) {
+                    console.log('Método directo falló, usando datos de ejemplo');
+                    // Si todo falla, usar datos de ejemplo
+                    data = getExampleTrefleData(query);
                 }
             }
-            
-            if (!response || !response.ok) {
-                throw lastError || new Error('No se pudo conectar con Trefle');
-            }
-            
-            const data = await response.json();
             
             if (data && data.data && data.data.length > 0) {
                 // Convertir los datos de Trefle al formato de nuestra aplicación
@@ -1406,16 +1405,16 @@
                         id: plant.id || Date.now() + index,
                         common_name: plant.common_name || 'Nombre no disponible',
                         scientific_name: plant.scientific_name || 'Nombre científico no disponible',
-                        image_url: plant.image_url || 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
-                        properties: ["Medicinal"], // Valor por defecto
+                        image_url: plant.image_url || getPlantImage(plant.common_name || plant.scientific_name),
+                        properties: getPlantProperties(plant.common_name || plant.scientific_name),
                         distribution: plant.distribution || 'Distribución no especificada',
                         region: 'desconocida',
                         altitude_range: '0-500',
                         climate_zones: ['templado'],
-                        description: plant.family ? `Pertenece a la familia ${plant.family}` : 'Planta medicinal con diversas propiedades.',
-                        medicinal_uses: 'Usos medicinales tradicionales.',
-                        preparation_methods: 'Consulta con un especialista para métodos de preparación adecuados.',
-                        precautions: 'Precauciones generales para plantas medicinales.',
+                        description: plant.family ? `Pertenece a la familia ${plant.family}. ${getPlantDescription(plant.common_name || plant.scientific_name)}` : getPlantDescription(plant.common_name || plant.scientific_name),
+                        medicinal_uses: getMedicinalUses(plant.common_name || plant.scientific_name),
+                        preparation_methods: getPreparationMethods(plant.common_name || plant.scientific_name),
+                        precautions: 'Precauciones generales para plantas medicinales. Consulte con un especialista.',
                         // Coordenadas para el mapa
                         latitude: userLocation ? userLocation.lat + offsetLat : 40.41 + offsetLat,
                         longitude: userLocation ? userLocation.lng + offsetLng : -3.70 + offsetLng,
@@ -1460,6 +1459,175 @@
                 loadExamplePlants();
             }, 1500);
         }
+    }
+
+    // Función para obtener datos de ejemplo de Trefle basados en la consulta
+    function getExampleTrefleData(query) {
+        const queryLower = query.toLowerCase();
+        
+        // Datos de ejemplo para diferentes búsquedas
+        const exampleData = {
+            'sauco': {
+                data: [
+                    {
+                        id: 1001,
+                        common_name: "Saúco",
+                        scientific_name: "Sambucus nigra",
+                        family: "Adoxaceae",
+                        image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
+                        distribution: "Europa, Asia noroccidental y África noroccidental"
+                    }
+                ]
+            },
+            'manzanilla': {
+                data: [
+                    {
+                        id: 1002,
+                        common_name: "Manzanilla",
+                        scientific_name: "Matricaria chamomilla",
+                        family: "Asteraceae",
+                        image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
+                        distribution: "Europa y Asia"
+                    }
+                ]
+            },
+            'menta': {
+                data: [
+                    {
+                        id: 1003,
+                        common_name: "Menta",
+                        scientific_name: "Mentha spicata",
+                        family: "Lamiaceae",
+                        image_url: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3",
+                        distribution: "Regiones templadas de todo el mundo"
+                    }
+                ]
+            },
+            'aloe': {
+                data: [
+                    {
+                        id: 1004,
+                        common_name: "Aloe vera",
+                        scientific_name: "Aloe barbadensis miller",
+                        family: "Asphodelaceae",
+                        image_url: "https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3",
+                        distribution: "Península arábiga y África"
+                    }
+                ]
+            },
+            'default': {
+                data: [
+                    {
+                        id: 1005,
+                        common_name: query.charAt(0).toUpperCase() + query.slice(1),
+                        scientific_name: "Planta medicinal",
+                        family: "Familia botánica",
+                        image_url: "https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3",
+                        distribution: "Distribución global"
+                    }
+                ]
+            }
+        };
+        
+        // Devolver datos según la consulta o datos por defecto
+        for (const key in exampleData) {
+            if (queryLower.includes(key)) {
+                return exampleData[key];
+            }
+        }
+        
+        return exampleData['default'];
+    }
+
+    // Funciones auxiliares para generar información de plantas
+    function getPlantImage(plantName) {
+        const plantImages = {
+            'saúco': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
+            'manzanilla': 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3',
+            'menta': 'https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?ixlib=rb-4.0.3',
+            'aloe': 'https://images.unsplash.com/photo-1593483316242-27ac42b70473?ixlib=rb-4.0.3',
+            'default': 'https://images.unsplash.com/photo-1597848212620-7c7d5f2b48fe?ixlib=rb-4.0.3'
+        };
+        
+        const plantLower = plantName.toLowerCase();
+        for (const key in plantImages) {
+            if (plantLower.includes(key)) {
+                return plantImages[key];
+            }
+        }
+        return plantImages['default'];
+    }
+
+    function getPlantProperties(plantName) {
+        const plantProperties = {
+            'saúco': ["Antiviral", "Expectorante", "Inmunoestimulante"],
+            'manzanilla': ["Digestiva", "Relajante", "Antiinflamatoria"],
+            'menta': ["Digestiva", "Refrescante", "Analgésica"],
+            'aloe': ["Cicatrizante", "Hidratante", "Antiinflamatoria"],
+            'default': ["Medicinal"]
+        };
+        
+        const plantLower = plantName.toLowerCase();
+        for (const key in plantProperties) {
+            if (plantLower.includes(key)) {
+                return plantProperties[key];
+            }
+        }
+        return plantProperties['default'];
+    }
+
+    function getPlantDescription(plantName) {
+        const plantDescriptions = {
+            'saúco': "El saúco es conocido por sus propiedades antivirales y se utiliza comúnmente para aliviar síntomas de resfriados y gripes.",
+            'manzanilla': "La manzanilla es conocida por sus propiedades calmantes y se utiliza comúnmente para aliviar problemas digestivos y promover la relajación.",
+            'menta': "La menta es una hierba aromática muy popular por su efecto refrescante y su capacidad para aliviar problemas digestivos.",
+            'aloe': "El aloe vera es conocido por sus propiedades regenerativas para la piel y su capacidad para aliviar quemaduras e irritaciones.",
+            'default': "Planta medicinal con diversas propiedades beneficiosas para la salud."
+        };
+        
+        const plantLower = plantName.toLowerCase();
+        for (const key in plantDescriptions) {
+            if (plantLower.includes(key)) {
+                return plantDescriptions[key];
+            }
+        }
+        return plantDescriptions['default'];
+    }
+
+    function getMedicinalUses(plantName) {
+        const plantUses = {
+            'saúco': "Jarabe para resfriados, gripes y afecciones respiratorias. Fortalece el sistema inmunológico.",
+            'manzanilla': "Infusión para problemas digestivos, ansiedad e irritaciones de la piel.",
+            'menta': "Alivio de indigestión, náuseas, dolor de cabeza y congestión respiratoria.",
+            'aloe': "Quemaduras, heridas, psoriasis, acné y problemas digestivos en forma de jugo.",
+            'default': "Usos medicinales tradicionales. Consulte con un especialista para más información."
+        };
+        
+        const plantLower = plantName.toLowerCase();
+        for (const key in plantUses) {
+            if (plantLower.includes(key)) {
+                return plantUses[key];
+            }
+        }
+        return plantUses['default'];
+    }
+
+    function getPreparationMethods(plantName) {
+        const plantMethods = {
+            'saúco': "Infusión de flores o bayas, jarabe de bayas cocidas con miel.",
+            'manzanilla': "Infusión con 1 cucharada de flores secas por taza de agua hirviendo, dejar reposar 5 minutos.",
+            'menta': "Infusión con hojas frescas o secas, inhalación de vapores para congestión.",
+            'aloe': "Aplicación directa del gel de la hoja sobre la piel, o consumo del jugo para problemas digestivos.",
+            'default': "Consulta con un especialista para métodos de preparación adecuados."
+        };
+        
+        const plantLower = plantName.toLowerCase();
+        for (const key in plantMethods) {
+            if (plantLower.includes(key)) {
+                return plantMethods[key];
+            }
+        }
+        return plantMethods['default'];
     }
 
     // Cargar plantas de ejemplo si Supabase falla
