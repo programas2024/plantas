@@ -84,7 +84,7 @@
 
     // 🚀 Cargar el modelo entrenado
     async function loadModel() {
-      model = await tmImage.load('model/model.json', 'model/metadata.json');
+      model = await tmImage.load('/plantas/model.json');
       console.log("✅ Modelo cargado");
     }
     loadModel();
