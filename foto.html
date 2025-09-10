@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Identificador de Plantas 🌿</title>
+  <!-- TensorFlow.js -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <!-- Teachable Machine (imagen) -->
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+  <!-- SweetAlert -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
@@ -50,6 +55,7 @@
     const input = document.getElementById('fileInput');
     const preview = document.getElementById('preview');
     const info = document.getElementById('info');
+    let model;
 
     // 📚 Base de datos de plantas
     const plantasDB = {
@@ -76,13 +82,24 @@
       }
     };
 
-    // ⚡ Simulación de red neuronal (clasificación simple)
-    async function clasificarPlanta(file) {
-      // Aquí se debería usar un modelo real con TensorFlow.js
-      // De momento se simula con selección aleatoria
-      const keys = Object.keys(plantasDB);
-      const random = keys[Math.floor(Math.random() * keys.length)];
-      return random;
+    // 🚀 Cargar el modelo entrenado
+    async function loadModel() {
+      model = await tmImage.load('model/model.json', 'model/metadata.json');
+      console.log("✅ Modelo cargado");
+    }
+    loadModel();
+
+    // 🔎 Clasificar con el modelo real
+    async function clasificarPlanta(imgElement) {
+      const predictions = await model.predict(imgElement);
+      console.log(predictions);
+
+      // Encontrar el resultado con más probabilidad
+      let mejor = predictions.reduce((prev, curr) =>
+        prev.probability > curr.probability ? prev : curr
+      );
+
+      return mejor.className.toLowerCase(); // ejemplo: "sauco"
     }
 
     input.addEventListener('change', async (e) => {
@@ -92,28 +109,33 @@
       preview.src = URL.createObjectURL(file);
       info.innerHTML = "<p>🔄 Analizando la planta...</p>";
 
-      // 🔬 Clasificar la planta
-      const plantaId = await clasificarPlanta(file);
-      const data = plantasDB[plantaId];
+      preview.onload = async () => {
+        const plantaId = await clasificarPlanta(preview);
+        const data = plantasDB[plantaId];
 
-      // 📌 Mostrar con SweetAlert
-      Swal.fire({
-        title: `<i class="fa-solid fa-seedling"></i> ${data.nombre}`,
-        html: `
-          <div class="card">
-            <h2><i class="fa-solid fa-book-open icon"></i> ${data.cientifico}</h2>
-            <p><i class="fa-solid fa-earth-americas icon"></i><strong>Origen:</strong> ${data.origen}</p>
-            <p><i class="fa-solid fa-mortar-pestle icon"></i><strong>Usos:</strong> ${data.usos}</p>
-            <p><i class="fa-solid fa-triangle-exclamation icon"></i><strong>Observación:</strong> ${data.observacion}</p>
-          </div>
-        `,
-        width: 600,
-        background: "#f0fff4",
-        confirmButtonText: "🌿 Entendido"
-      });
+        if (data) {
+          Swal.fire({
+            title: `<i class="fa-solid fa-seedling"></i> ${data.nombre}`,
+            html: `
+              <div class="card">
+                <h2><i class="fa-solid fa-book-open icon"></i> ${data.cientifico}</h2>
+                <p><i class="fa-solid fa-earth-americas icon"></i><strong>Origen:</strong> ${data.origen}</p>
+                <p><i class="fa-solid fa-mortar-pestle icon"></i><strong>Usos:</strong> ${data.usos}</p>
+                <p><i class="fa-solid fa-triangle-exclamation icon"></i><strong>Observación:</strong> ${data.observacion}</p>
+              </div>
+            `,
+            width: 600,
+            background: "#f0fff4",
+            confirmButtonText: "🌿 Entendido"
+          });
+        } else {
+          Swal.fire("⚠️ Planta no registrada en la base de datos");
+        }
 
-      info.innerHTML = "";
+        info.innerHTML = "";
+      };
     });
   </script>
 </body>
 </html>
+
