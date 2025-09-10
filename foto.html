@@ -83,10 +83,11 @@
     };
 
     // 🚀 Cargar el modelo entrenado
-    async function loadModel() {
-      model = await tmImage.load('plantas/model.json');
-      console.log("✅ Modelo cargado");
-    }
+  async function loadModel() {
+  model = await tmImage.load('plantas/model.json', 'plantas/metadata.json');
+  console.log("✅ Modelo cargado");
+}
+
     loadModel();
 
     // 🔎 Clasificar con el modelo real
