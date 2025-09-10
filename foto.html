@@ -3,9 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <title>Identificador de Plantas 🌿</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5fff5;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #2e7d32;
+    }
+    #preview {
+      margin-top: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .card {
+      background: white;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 400px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+    .card h2 {
+      color: #388e3c;
+    }
+    .icon {
+      color: #43a047;
+      margin-right: 8px;
+    }
+  </style>
 </head>
 <body>
-  <h1>📷 Identificador de Plantas</h1>
+  <h1><i class="fa-solid fa-leaf"></i> Identificador de Plantas</h1>
   <input type="file" id="fileInput" accept="image/*" capture="environment">
   <br><br>
   <img id="preview" width="300">
@@ -16,44 +51,69 @@
     const preview = document.getElementById('preview');
     const info = document.getElementById('info');
 
+    // 📚 Base de datos de plantas
+    const plantasDB = {
+      "sauco": {
+        nombre: "Sauco",
+        cientifico: "Sambucus nigra",
+        origen: "Europa y América del Norte",
+        usos: "Infusiones para resfriados, ungüentos para la piel",
+        observacion: "Tóxica en exceso, usar con precaución"
+      },
+      "manzanilla": {
+        nombre: "Manzanilla",
+        cientifico: "Matricaria chamomilla",
+        origen: "Europa y Asia",
+        usos: "Relajante, ayuda digestiva, calmante natural",
+        observacion: "Segura en infusión, no abusar en embarazo"
+      },
+      "sabina": {
+        nombre: "Sábila (Aloe vera)",
+        cientifico: "Aloe vera",
+        origen: "África del Norte",
+        usos: "Gel cicatrizante, hidratación de piel, quemaduras",
+        observacion: "No ingerir en exceso, puede ser laxante fuerte"
+      }
+    };
+
+    // ⚡ Simulación de red neuronal (clasificación simple)
+    async function clasificarPlanta(file) {
+      // Aquí se debería usar un modelo real con TensorFlow.js
+      // De momento se simula con selección aleatoria
+      const keys = Object.keys(plantasDB);
+      const random = keys[Math.floor(Math.random() * keys.length)];
+      return random;
+    }
+
     input.addEventListener('change', async (e) => {
       const file = e.target.files[0];
-      
       if (!file) return;
 
       preview.src = URL.createObjectURL(file);
       info.innerHTML = "<p>🔄 Analizando la planta...</p>";
 
-      // Crear formData para enviar como multipart/form-data
-      const formData = new FormData();
-      formData.append("images", file);
-      formData.append("organs", "leaf"); // puedes usar "flower", "fruit", etc.
+      // 🔬 Clasificar la planta
+      const plantaId = await clasificarPlanta(file);
+      const data = plantasDB[plantaId];
 
-      try {
-        const response = await fetch("https://my-api.plantnet.org/v2/identify/all?api-key=2b10qQGbfwNVuPVsvb8mZKCLfe", {
-          method: "POST",
-          body: formData
-        });
+      // 📌 Mostrar con SweetAlert
+      Swal.fire({
+        title: `<i class="fa-solid fa-seedling"></i> ${data.nombre}`,
+        html: `
+          <div class="card">
+            <h2><i class="fa-solid fa-book-open icon"></i> ${data.cientifico}</h2>
+            <p><i class="fa-solid fa-earth-americas icon"></i><strong>Origen:</strong> ${data.origen}</p>
+            <p><i class="fa-solid fa-mortar-pestle icon"></i><strong>Usos:</strong> ${data.usos}</p>
+            <p><i class="fa-solid fa-triangle-exclamation icon"></i><strong>Observación:</strong> ${data.observacion}</p>
+          </div>
+        `,
+        width: 600,
+        background: "#f0fff4",
+        confirmButtonText: "🌿 Entendido"
+      });
 
-        const result = await response.json();
-
-        if (result.results && result.results.length > 0) {
-          const bestMatch = result.results[0];
-          info.innerHTML = `
-            <h2>${bestMatch.species.scientificNameWithoutAuthor}</h2>
-            <p><strong>Nombre común:</strong> ${bestMatch.species.commonNames.join(", ") || "No disponible"}</p>
-            <p><strong>Confianza:</strong> ${(bestMatch.score * 100).toFixed(2)}%</p>
-            <a href="https://es.wikipedia.org/wiki/${bestMatch.species.scientificNameWithoutAuthor}" target="_blank">🌍 Más info en Wikipedia</a>
-          `;
-        } else {
-          info.innerHTML = "<p>⚠️ No se pudo identificar la planta.</p>";
-        }
-      } catch (err) {
-        info.innerHTML = "<p>❌ Error al conectar con la API.</p>";
-        console.error(err);
-      }
+      info.innerHTML = "";
     });
   </script>
-  
 </body>
 </html>
