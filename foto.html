@@ -19,7 +19,7 @@
       padding: 20px;
     }
     h1 {
-      color: #ca92ff;
+      color: #000000;
     }
     #preview {
       margin-top: 20px;
@@ -84,7 +84,8 @@
 
     // 🚀 Cargar el modelo entrenado
   async function loadModel() {
-  model = await tmImage.load('plantas/model.json', 'plantas/metadata.json');
+  model = await tmImage.load('model/model.json', 'model/metadata.json');
+
   console.log("✅ Modelo cargado");
 }
 
