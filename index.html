@@ -1344,32 +1344,7 @@
             </form>
         </div>
 
-        <!-- Guía de uso -->
-        <div class="guide-container">
-            <div class="guide-title">
-                <i class="fas fa-info-circle" style="color: var(--primary); font-size: 1.5rem;"></i>
-                <h3>¿Cómo usar esta aplicación?</h3>
-            </div>
-            <div class="guide-steps">
-                <div class="guide-step">
-                    <h4><i class="fas fa-search"></i> Búsqueda</h4>
-                    <p>Usa la barra de búsqueda para encontrar plantas por nombre o propiedades medicinales.</p>
-                </div>
-                <div class="guide-step">
-                    <h4><i class="fas fa-filter"></i> Filtros</h4>
-                    <p>Aplica filtros para encontrar plantas por región, altitud, clima o propiedades específicas.</p>
-                </div>
-                <div class="guide-step">
-                    <h4><i class="fas fa-map-marked-alt"></i> Mapa</h4>
-                    <p>Explora las plantas en el mapa interactivo. Haz clic en los marcadores para ver detalles.</p>
-                </div>
-                <div class="guide-step">
-                    <h4><i class="fas fa-plus-circle"></i> Agregar</h4>
-                    <p>Añade nuevas plantas medicinales con el botón "Agregar Planta".</p>
-                </div>
-            </div>
-        </div>
-
+       
         <div class="content-wrapper">
             <div class="map-container">
                 <div id="map"></div>
@@ -1435,41 +1410,78 @@
     let allPlants = [];
     let plantMarkers = [];
 
-    // Función para mostrar ayuda de la aplicación
-    function showHelp() {
-        Swal.fire({
-            title: '¿Cómo usar Plantas Medicinales?',
-            html: `
-                <div style="text-align: left; line-height: 1.8;">
-                    <p><strong>Esta aplicación te permite:</strong></p>
-                    <ul>
-                        <li>🌿 <strong>Buscar plantas medicinales</strong> por nombre o propiedades</li>
-                        <li>🔍 <strong>Filtar plantas</strong> por región, altitud, clima o propiedades específicas</li>
-                        <li>🗺️ <strong>Visualizar en un mapa</strong> la ubicación de las plantas</li>
-                        <li>➕ <strong>Agregar nuevas plantas</strong> a la base de datos</li>
-                        <li>ℹ️ <strong>Ver información detallada</strong> sobre cada planta medicinal</li>
-                    </ul>
-                    
-                    <p><strong>Para buscar:</strong> Escribe en la barra de búsqueda y presiona Enter o el botón de búsqueda.</p>
-                    
-                    <p><strong>Para filtrar:</strong> Haz clic en "Filtros" y selecciona los criterios deseados.</p>
-                    
-                    <p><strong>Para ver detalles:</strong> Haz clic en cualquier tarjeta de planta o marcador del mapa.</p>
-                    
-                    <p><strong>Para agregar plantas:</strong> Usa el botón "Agregar Planta" y completa el formulario.</p>
-                </div>
-            `,
-            icon: 'info',
-            confirmButtonText: 'Entendido',
-            width: '800px',
-            background: 'var(--card-background)',
-            color: 'var(--text-primary)',
-            customClass: {
-                confirmButton: 'swal2-confirm'
-            }
-        });
-    }
-
+   // Función para mostrar ayuda de la aplicación
+        function showHelp() {
+            Swal.fire({
+                title: '¿Cómo usar Plantas Medicinales?',
+                html: `
+                    <div style="text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: white; border-radius: 8px;">
+                            <i class="fas fa-info-circle" style="font-size: 2rem;"></i>
+                            <h3 style="margin: 0; font-size: 1.5rem;">¿Cómo usar esta aplicación?</h3>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
+                                <h4 style="margin: 0 0 10px 0; color: var(--primary); display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-search"></i> Búsqueda
+                                </h4>
+                                <p style="margin: 0; color: var(--text-secondary);">Usa la barra de búsqueda para encontrar plantas por nombre o propiedades medicinales.</p>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
+                                <h4 style="margin: 0 0 10px 0; color: var(--primary); display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-filter"></i> Filtros
+                                </h4>
+                                <p style="margin: 0; color: var(--text-secondary);">Aplica filtros para encontrar plantas por región, altitud, clima o propiedades específicas.</p>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
+                                <h4 style="margin: 0 0 10px 0; color: var(--primary); display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-map-marked-alt"></i> Mapa
+                                </h4>
+                                <p style="margin: 0; color: var(--text-secondary);">Explora las plantas en el mapa interactivo. Haz clic en los marcadores para ver detalles.</p>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
+                                <h4 style="margin: 0 0 10px 0; color: var(--primary); display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-plus-circle"></i> Agregar
+                                </h4>
+                                <p style="margin: 0; color: var(--text-secondary);">Añade nuevas plantas medicinales con el botón "Agregar Planta".</p>
+                            </div>
+                        </div>
+                        
+                        <p style="font-weight: 600; margin-bottom: 10px;">Esta aplicación te permite:</p>
+                        <ul style="padding-left: 20px; margin-bottom: 20px; line-height: 1.8;">
+                            <li>🌿 <strong>Buscar plantas medicinales</strong> por nombre o propiedades</li>
+                            <li>🔍 <strong>Filtrar plantas</strong> por región, altitud, clima o propiedades específicas</li>
+                            <li>🗺️ <strong>Visualizar en un mapa</strong> la ubicación de las plantas</li>
+                            <li>➕ <strong>Agregar nuevas plantas</strong> a la base de datos</li>
+                            <li>ℹ️ <strong>Ver información detallada</strong> sobre cada planta medicinal</li>
+                        </ul>
+                        
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="margin: 0 0 10px 0; font-weight: 600;">Instrucciones rápidas:</p>
+                            <ul style="padding-left: 20px; margin: 0; line-height: 1.8;">
+                                <li><strong>Para buscar:</strong> Escribe en la barra de búsqueda y presiona Enter o el botón de búsqueda.</li>
+                                <li><strong>Para filtrar:</strong> Haz clic en "Filtros" y selecciona los criterios deseados.</li>
+                                <li><strong>Para ver detalles:</strong> Haz clic en cualquier tarjeta de planta o marcador del mapa.</li>
+                                <li><strong>Para agregar plantas:</strong> Usa el botón "Agregar Planta" y completa el formulario.</li>
+                            </ul>
+                        </div>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '800px',
+                background: 'var(--card-background)',
+                color: 'var(--text-primary)',
+                customClass: {
+                    confirmButton: 'swal2-confirm',
+                    container: 'swal2-container'
+                }
+            });
+        }
     // Función principal para buscar plantas
     async function searchPlants(query = '', filters = {}) {
         const plantsContainer = document.getElementById('plantsContainer');
