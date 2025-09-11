@@ -972,29 +972,24 @@
                         </button>
                     </div>
                     
-                    <button id="filterToggle" class="filter-toggle">
-                        <i class="fas fa-filter"></i>
-                        <span class="filter-text">Filtros</span>
-                    </button>
+                    <div class="header-buttons">
+                        <button id="filterToggle" class="filter-toggle">
+                            <i class="fas fa-filter"></i>
+                            <span class="filter-text">Filtros</span>
+                        </button>
 
-                    <button id="addPlantBtn" class="add-plant-btn">
-                        <i class="fas fa-plus"></i>
-                        <span>Agregar Planta</span>
-                    </button>
+                        <button id="addPlantBtn" class="add-plant-btn">
+                            <i class="fas fa-plus"></i>
+                            <span>Agregar</span>
+                        </button>
 
-                    <button id="helpBtn" class="help-btn">
-                        <i class="fas fa-question-circle"></i>
-                        <span>Ayuda</span>
-                    </button>
+                        <button id="helpBtn" class="help-btn">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Ayuda</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-
-          <a href="foto.html">
-    <button id="helpBtn" class="help-btn">
-        <i class="fas fa-question-circle"></i>
-        <span>foto</span>
-    </button>
-</a>
 
             <div id="advancedFilters" class="advanced-filters">
                 <div class="filter-group">
@@ -1080,113 +1075,138 @@
     <main class="container">
         <div id="adminForm" class="admin-panel">
             <h3><i class="fas fa-plus-circle"></i> Añadir Nueva Planta Medicinal</h3>
+            
             <form id="plantForm" class="plant-form">
-                <div class="form-group">
-                    <label for="common_name">
-                        <i class="fas fa-signature"></i>
-                        Nombre común
-                    </label>
-                    <input type="text" id="common_name" required placeholder="Ej: Manzanilla">
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información básica
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="common_name">
+                                <i class="fas fa-signature"></i>
+                                Nombre común
+                            </label>
+                            <input type="text" id="common_name" required placeholder="Ej: Manzanilla">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="scientific_name">
+                                <i class="fas fa-microscope"></i>
+                                Nombre científico
+                            </label>
+                            <input type="text" id="scientific_name" required placeholder="Ej: Matricaria chamomilla">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="image_url">
+                                <i class="fas fa-image"></i>
+                                URL de la imagen
+                            </label>
+                            <input type="url" id="image_url" required placeholder="https://ejemplo.com/imagen.jpg">
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="scientific_name">
-                        <i class="fas fa-microscope"></i>
-                        Nombre científico
-                    </label>
-                    <input type="text" id="scientific_name" required placeholder="Ej: Matricaria chamomilla">
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-map-marked-alt"></i>
+                        Distribución y hábitat
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="distribution">
+                                <i class="fas fa-globe-americas"></i>
+                                Distribución
+                            </label>
+                            <input type="text" id="distribution" required placeholder="Regiones de Europa и Asia">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="region">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Región
+                            </label>
+                            <select id="region" required>
+                                <option value="">Selecciona una región</option>
+                                <option value="norte">Norte</option>
+                                <option value="sur">Sur</option>
+                                <option value="este">Este</option>
+                                <option value="oeste">Oeste</option>
+                                <option value="centro">Centro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="altitude_range">
+                                <i class="fas fa-mountain"></i>
+                                Rango de altitud
+                            </label>
+                            <select id="altitude_range" required>
+                                <option value="">Selecciona un rango</option>
+                                <option value="0-500">0-500 m</option>
+                                <option value="500-1500">500-1500 m</option>
+                                <option value="1500-3000">1500-3000 m</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="climate_zones">
+                                <i class="fas fa-cloud-sun"></i>
+                                Zonas climáticas
+                            </label>
+                            <input type="text" id="climate_zones" required placeholder="templado, seco">
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="image_url">
-                        <i class="fas fa-image"></i>
-                        URL de la imagen
-                    </label>
-                    <input type="url" id="image_url" required placeholder="https://ejemplo.com/imagen.jpg">
-                </div>
-                
-                <div class="form-group">
-                    <label for="properties">
+                <div class="form-section">
+                    <div class="form-section-title">
                         <i class="fas fa-heart"></i>
-                        Propiedades (separadas por coma)
-                    </label>
-                    <input type="text" id="properties" required placeholder="Digestiva, Relajante, Antiinflamatoria">
+                        Propiedades medicinales
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="properties">
+                                <i class="fas fa-heart"></i>
+                                Propiedades (separadas por coma)
+                            </label>
+                            <input type="text" id="properties" required placeholder="Digestiva, Relajante, Antiinflamatoria">
+                        </div>
+                        
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="medicinal_uses">
+                                <i class="fas fa-first-aid"></i>
+                                Usos medicinales
+                            </label>
+                            <textarea id="medicinal_uses" placeholder="Describe los usos medicinales..."></textarea>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="distribution">
-                        <i class="fas fa-globe-americas"></i>
-                        Distribución
-                    </label>
-                    <input type="text" id="distribution" required placeholder="Regiones de Europa y Asia">
-                </div>
-                
-                <div class="form-group">
-                    <label for="region">
-                        <i class="fas fa-map-marker-alt"></i>
-                        Región
-                    </label>
-                    <select id="region" required>
-                        <option value="">Selecciona una región</option>
-                        <option value="norte">Norte</option>
-                        <option value="sur">Sur</option>
-                        <option value="este">Este</option>
-                        <option value="oeste">Oeste</option>
-                        <option value="centro">Centro</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="altitude_range">
-                        <i class="fas fa-mountain"></i>
-                        Rango de altitud
-                    </label>
-                    <select id="altitude_range" required>
-                        <option value="">Selecciona un rango</option>
-                        <option value="0-500">0-500 m</option>
-                        <option value="500-1500">500-1500 m</option>
-                        <option value="1500-3000">1500-3000 m</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="climate_zones">
-                        <i class="fas fa-cloud-sun"></i>
-                        Zonas climáticas (separadas por coma)
-                    </label>
-                    <input type="text" id="climate_zones" required placeholder="templado, seco">
-                </div>
-                
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="description">
-                        <i class="fas fa-align-left"></i>
-                        Descripción
-                    </label>
-                    <textarea id="description" placeholder="Describe la planta..."></textarea>
-                </div>
-                
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="medicinal_uses">
-                        <i class="fas fa-first-aid"></i>
-                        Usos medicinales
-                    </label>
-                    <textarea id="medicinal_uses" placeholder="Describe los usos medicinales..."></textarea>
-                </div>
-                
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="preparation_methods">
+                <div class="form-section">
+                    <div class="form-section-title">
                         <i class="fas fa-mortar-pestle"></i>
-                        Métodos de preparación
-                    </label>
-                    <textarea id="preparation_methods" placeholder="Describe cómo prepararla..."></textarea>
-                </div>
-                
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="precautions">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Precauciones
-                    </label>
-                    <textarea id="precautions" placeholder="Indica las precauciones necesarias..."></textarea>
+                        Preparación y precauciones
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="preparation_methods">
+                                <i class="fas fa-mortar-pestle"></i>
+                                Métodos de preparación
+                            </label>
+                            <textarea id="preparation_methods" placeholder="Describe cómo prepararla..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="precautions">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Precauciones
+                            </label>
+                            <textarea id="precautions" placeholder="Indica las precauciones necesarias..."></textarea>
+                        </div>
+                    </div>
                 </div>
                 
                 <button type="submit" class="form-submit">
@@ -1240,10 +1260,12 @@
                 </div>
             </div>
             
-            <div id="plantsContainer" class="plants-container">
-                <div class="status-message">
-                    <i class="fas fa-spinner loader"></i>
-                    <span>Cargando plantas medicinales...</span>
+            <div class="plants-container-wrapper">
+                <div id="plantsContainer" class="plants-container">
+                    <div class="status-message">
+                        <i class="fas fa-spinner loader"></i>
+                        <span>Cargando plantas medicinales...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1271,7 +1293,6 @@
             </div>
         </div>
     </footer>
-
    <script>
     // Configuración de Supabase - VERIFICA ESTOS VALORES
     const SUPABASE_URL = 'https://dltnrcmhopkfgkmupjbl.supabase.co';
