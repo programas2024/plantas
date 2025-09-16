@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root {
-      --primary: #2e7d32;
+      --primary: #49cc50;
       --primary-light: #4caf50;
       --secondary: #8bc34a;
       --accent: #ff9800;
@@ -244,6 +244,37 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
     
+    .camera-container {
+      display: none;
+      margin: 20px 0;
+      text-align: center;
+    }
+    
+    #video {
+      width: 100%;
+      max-height: 400px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .camera-controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    
+    .camera-btn {
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
     .instructions {
       background: #e8f5e9;
       padding: 20px;
@@ -333,26 +364,27 @@
       margin: 0 auto 15px;
     }
     
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .camera-help {
+    .permission-help {
       background: #fff8e1;
       border-left: 4px solid var(--accent);
       padding: 15px;
       margin: 20px 0;
       border-radius: 4px;
       text-align: left;
+      display: none;
     }
     
-    .camera-help h4 {
+    .permission-help h4 {
       color: var(--accent);
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     
     @media (max-width: 768px) {
@@ -380,6 +412,11 @@
       
       .hero p {
         font-size: 1rem;
+      }
+      
+      .camera-controls {
+        flex-direction: column;
+        align-items: center;
       }
     }
   </style>
@@ -431,6 +468,31 @@
           
           <input type="file" id="fileInput" accept="image/*" hidden>
           
+          <div class="camera-container" id="cameraContainer">
+            <video id="video" autoplay playsinline></video>
+            <div class="camera-controls">
+              <button class="camera-btn btn-accent" id="captureBtn">
+                <i class="fas fa-camera"></i> Capturar
+              </button>
+              <button class="camera-btn btn-outline" id="switchCameraBtn">
+                <i class="fas fa-sync-alt"></i> Cambiar cámara
+              </button>
+              <button class="camera-btn btn-outline" id="closeCameraBtn">
+                <i class="fas fa-times"></i> Cerrar
+              </button>
+            </div>
+          </div>
+          
+          <div class="permission-help" id="permissionHelp">
+            <h4><i class="fas fa-exclamation-triangle"></i> Permisos de cámara</h4>
+            <p>Para usar la cámara, necesitas permitir el acceso en tu navegador. Si no ves la solicitud de permisos:</p>
+            <ol>
+              <li>Haz clic en el icono de candado o cámara en la barra de direcciones</li>
+              <li>Configura los permisos de cámara para "Permitir"</li>
+              <li>Recarga la página e intenta de nuevo</li>
+            </ol>
+          </div>
+          
           <div id="preview-container">
             <img id="preview">
             <div style="margin-top: 20px;">
@@ -446,11 +508,6 @@
           <div class="loading" id="loading">
             <div class="loading-spinner"></div>
             <p>Analizando imagen...</p>
-          </div>
-          
-          <div class="camera-help">
-            <h4><i class="fas fa-info-circle"></i> ¿Cómo tomar la foto?</h4>
-            <p>Haz clic en "Tomar foto" para abrir la aplicación de cámara de tu dispositivo. Después de tomar la foto, regresa aquí y sube la imagen.</p>
           </div>
         </div>
         
@@ -558,6 +615,11 @@
     const fileInput = document.getElementById('fileInput');
     const uploadGallery = document.getElementById('uploadGallery');
     const openCamera = document.getElementById('openCamera');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const video = document.getElementById('video');
+    const captureBtn = document.getElementById('captureBtn');
+    const switchCameraBtn = document.getElementById('switchCameraBtn');
+    const closeCameraBtn = document.getElementById('closeCameraBtn');
     const previewContainer = document.getElementById('preview-container');
     const preview = document.getElementById('preview');
     const analyzeBtn = document.getElementById('analyzeBtn');
@@ -567,8 +629,11 @@
     const plantInfo = document.getElementById('plantInfo');
     const aboutBtn = document.getElementById('aboutBtn');
     const safireBtn = document.getElementById('safireBtn');
+    const permissionHelp = document.getElementById('permissionHelp');
 
     let model;
+    let stream = null;
+    let currentFacingMode = 'environment'; // 'environment' para cámara trasera, 'user' para frontal
 
     // 📚 Base de datos de plantas
     const plantasDB = {
@@ -599,7 +664,7 @@
       "menta": {
         nombre: "Menta",
         cientifico: "Mentha spp.",
-        origen: "Europa, Asia y África",
+        origen: "Europa, Asia and África",
         usos: "Infusiones digestivas, ambientador natural",
         observacion: "Evitar en niños pequeños y embarazo",
         propiedades: "Digestiva, antiséptica, refrescante"
@@ -643,20 +708,17 @@
         fileInput.click();
       });
       
-      // Abrir cámara del sistema operativo
-      openCamera.addEventListener('click', () => {
-        // Crear un input de tipo file con atributo capture para abrir la cámara
-        const cameraInput = document.createElement('input');
-        cameraInput.type = 'file';
-        cameraInput.accept = 'image/*';
-        cameraInput.capture = 'environment';
-        
-        // Simular clic en el input para abrir la cámara
-        cameraInput.click();
-        
-        // Manejar la selección de archivo
-        cameraInput.addEventListener('change', handleFileSelect);
-      });
+      // Abrir cámara
+      openCamera.addEventListener('click', openCameraHandler);
+      
+      // Capturar foto
+      captureBtn.addEventListener('click', captureImage);
+      
+      // Cambiar cámara
+      switchCameraBtn.addEventListener('click', switchCamera);
+      
+      // Cerrar cámara
+      closeCameraBtn.addEventListener('click', closeCamera);
       
       // Manejar selección de archivo
       fileInput.addEventListener('change', handleFileSelect);
@@ -700,6 +762,74 @@
           confirmButtonText: 'Entendido'
         });
       });
+    }
+    
+    // Abrir cámara
+    async function openCameraHandler() {
+      try {
+        // Detener stream existente si hay uno
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+        
+        // Solicitar acceso a la cámara
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: currentFacingMode },
+          audio: false
+        });
+        
+        // Mostrar video en el elemento video
+        video.srcObject = stream;
+        cameraContainer.style.display = 'block';
+        permissionHelp.style.display = 'none';
+        
+      } catch (error) {
+        console.error("Error accediendo a la cámara:", error);
+        permissionHelp.style.display = 'block';
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de cámara',
+          html: `
+            <p>No se pudo acceder a la cámara. Por favor:</p>
+            <ol style="text-align: left;">
+              <li>Asegúrate de permitir el acceso a la cámara</li>
+              <li>Verifica que tu cámara esté conectada y funcionando</li>
+              <li>Intenta usar otro navegador si el problema persiste</li>
+            </ol>
+          `,
+          confirmButtonText: 'Entendido'
+        });
+      }
+    }
+    
+    // Cambiar entre cámaras frontal y trasera
+    function switchCamera() {
+      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+      openCameraHandler();
+    }
+    
+    // Cerrar cámara
+    function closeCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      cameraContainer.style.display = 'none';
+    }
+    
+    // Capturar imagen desde la cámara
+    function captureImage() {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      
+      // Mostrar vista previa
+      showPreview(canvas.toDataURL('image/png'));
+      
+      // Cerrar cámara
+      closeCamera();
     }
     
     // Manejar selección de archivo
@@ -828,6 +958,14 @@
     function resetInterface() {
       fileInput.value = '';
       previewContainer.style.display = 'none';
+      cameraContainer.style.display = 'none';
+      permissionHelp.style.display = 'none';
+      
+      // Detener cámara si está activa
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
       
       // Restablecer sección de resultados
       plantInfo.style.display = 'none';
