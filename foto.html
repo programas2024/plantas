@@ -14,15 +14,23 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root {
-      --primary: #49cc50;
-      --primary-light: #4caf50;
-      --secondary: #8bc34a;
-      --accent: #ff9800;
-      --light: #f1f8e9;
-      --dark: #1b5e20;
-      --text: #212121;
-      --text-light: #757575;
-      --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      --primary: #5697bd;
+      --primary-light: #48cae4;
+      --primary-dark: #1d7875;
+      --secondary: #e9c46a;
+      --secondary-light: #f4e8c9;
+      --accent: #e76f51;
+      --accent-light: #f8d7ce;
+      --background: #f8f9fa;
+      --card-background: #ffffff;
+      --text-primary: #264653;
+      --text-secondary: #6c757d;
+      --text-light: #a0aec0;
+      --border: #e2e8f0;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 10px 30px rgba(0, 0, 0, 0.12);
+      --radius: 16px;
+      --transition: all 0.3s ease;
     }
     
     * {
@@ -33,11 +41,11 @@
     
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, var(--light) 0%, #e8f5e9 100%);
-      color: var(--text);
+      background: var(--background);
+      color: var(--text-primary);
       line-height: 1.6;
       min-height: 100vh;
-      padding: 20px;
+      
     }
     
     .container {
@@ -49,7 +57,7 @@
       background: linear-gradient(to right, var(--primary), var(--primary-light));
       color: white;
       padding: 15px 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow);
       
       margin-bottom: 30px;
     }
@@ -84,7 +92,7 @@
       border-radius: 50px;
       cursor: pointer;
       font-weight: 500;
-      transition: all 0.3s ease;
+      transition: var(--transition);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -98,21 +106,21 @@
     .hero {
       text-align: center;
       padding: 40px 20px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      background: var(--card-background);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       margin-bottom: 40px;
     }
     
     .hero h1 {
       font-size: 2.5rem;
       margin-bottom: 15px;
-      color: var(--dark);
+      color: var(--primary-dark);
     }
     
     .hero p {
       font-size: 1.2rem;
-      color: var(--text-light);
+      color: var(--text-secondary);
       max-width: 700px;
       margin: 0 auto 30px;
     }
@@ -138,17 +146,17 @@
     }
     
     .card {
-      background: white;
-      border-radius: 18px;
+      background: var(--card-background);
+      border-radius: var(--radius);
       padding: 25px;
-      box-shadow: var(--card-shadow);
+      box-shadow: var(--shadow);
       margin-bottom: 25px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: var(--transition);
     }
     
     .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+      box-shadow: var(--shadow-hover);
     }
     
     .card-title {
@@ -168,17 +176,17 @@
     }
     
     .upload-option {
-      background: var(--light);
+      background: var(--secondary-light);
       border: 2px dashed var(--secondary);
       border-radius: 12px;
       padding: 25px 15px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: var(--transition);
     }
     
     .upload-option:hover {
-      background: #e8f5e9;
+      background: var(--secondary-light);
       border-color: var(--primary);
       transform: translateY(-3px);
     }
@@ -199,14 +207,14 @@
       cursor: pointer;
       font-size: 1rem;
       font-weight: 500;
-      transition: all 0.3s ease;
+      transition: var(--transition);
       text-align: center;
       width: 100%;
       margin-top: 10px;
     }
     
     .btn:hover {
-      background: var(--dark);
+      background: var(--primary-dark);
       transform: translateY(-2px);
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
@@ -227,7 +235,7 @@
     }
     
     .btn-accent:hover {
-      background: #f57c00;
+      background: #d45a3c;
     }
     
     #preview-container {
@@ -241,7 +249,7 @@
       max-width: 100%;
       max-height: 400px;
       border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow);
     }
     
     .camera-container {
@@ -254,7 +262,7 @@
       width: 100%;
       max-height: 400px;
       border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--shadow);
     }
     
     .camera-controls {
@@ -276,9 +284,9 @@
     }
     
     .instructions {
-      background: #e8f5e9;
+      background: var(--secondary-light);
       padding: 20px;
-      border-radius: 12px;
+      border-radius: var(--radius);
       margin-top: 20px;
     }
     
@@ -309,7 +317,7 @@
     .result-placeholder i {
       font-size: 4rem;
       margin-bottom: 20px;
-      color: #ddd;
+      color: var(--border);
     }
     
     .plant-info {
@@ -335,7 +343,7 @@
     
     .info-label {
       font-weight: 600;
-      color: var(--dark);
+      color: var(--primary-dark);
       display: block;
       margin-bottom: 5px;
     }
@@ -343,9 +351,9 @@
     footer {
       text-align: center;
       padding: 30px;
-      color: var(--text-light);
+      color: var(--text-secondary);
       font-size: 0.9rem;
-      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      border-top: 1px solid var(--border);
     }
     
     .loading {
@@ -355,7 +363,7 @@
     }
     
     .loading-spinner {
-      border: 4px solid #f3f3f3;
+      border: 4px solid var(--border);
       border-top: 4px solid var(--primary);
       border-radius: 50%;
       width: 40px;
@@ -365,7 +373,7 @@
     }
     
     .permission-help {
-      background: #fff8e1;
+      background: var(--accent-light);
       border-left: 4px solid var(--accent);
       padding: 15px;
       margin: 20px 0;
@@ -385,7 +393,7 @@
     .camera-status {
       margin-top: 10px;
       font-size: 0.9rem;
-      color: var(--text-light);
+      color: var(--text-secondary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -430,6 +438,7 @@
       }
     }
   </style>
+
 </head>
 <body>
   <div class="container">
@@ -437,7 +446,7 @@
       <div class="header-content">
         <div class="logo">
           <i class="fas fa-leaf"></i>
-          <span>PlantID</span>
+          <span>Butify</span>
         </div>
         <div class="nav-buttons">
           <button class="nav-btn" id="aboutBtn">
