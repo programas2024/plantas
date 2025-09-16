@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root {
-      --primary: #6af5ff;
+      --primary: #2e7d32;
       --primary-light: #4caf50;
       --secondary: #8bc34a;
       --accent: #ff9800;
@@ -234,6 +234,8 @@
     
     #preview {
       width: 100%;
+      max-height: 400px;
+      object-fit: contain;
       border-radius: 12px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
@@ -517,7 +519,7 @@
             </div>
           </div>
           
-          <input type="file" id="fileInput" accept="image/*" hidden>
+          <input type="file" id="fileInput" accept="image/*" capture="environment" hidden>
           
           <div class="camera-feed" id="cameraContainer">
             <div class="permission-help" id="permissionHelp" style="display: none;">
@@ -529,16 +531,6 @@
                 <li>Recarga la página e intenta de nuevo</li>
                 <li>Asegúrate de estar usando HTTPS</li>
               </ol>
-            </div>
-            
-            <video id="video" autoplay playsinline></video>
-            <div class="camera-options">
-              <button class="camera-btn" id="switchCamera">
-                <i class="fas fa-sync-alt"></i> Cambiar cámara
-              </button>
-              <button class="camera-btn btn-accent" id="captureBtn">
-                <i class="fas fa-camera"></i> Capturar
-              </button>
             </div>
           </div>
           
@@ -681,9 +673,6 @@
     const openCamera = document.getElementById('openCamera');
     const uploadOptions = document.getElementById('uploadOptions');
     const cameraContainer = document.getElementById('cameraContainer');
-    const video = document.getElementById('video');
-    const switchCamera = document.getElementById('switchCamera');
-    const captureBtn = document.getElementById('captureBtn');
     const previewContainer = document.getElementById('preview-container');
     const preview = document.getElementById('preview');
     const analyzeBtn = document.getElementById('analyzeBtn');
@@ -702,8 +691,6 @@
     const httpsWarning = document.getElementById('httpsWarning');
 
     let model;
-    let stream = null;
-    let currentFacingMode = 'environment';
     let cameraPermissionDenied = false;
     let isSecureContext = window.isSecureContext;
 
@@ -770,15 +757,6 @@
         disableCamera("La cámara requiere HTTPS");
         return;
       }
-      
-      // Verificar si el navegador soporta la API de mediaDevices
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        disableCamera("Tu navegador no soporta la cámara");
-        return;
-      }
-      
-      // Verificar permisos previamente denegados
-      checkCameraPermissions();
     }
     
     // Deshabilitar la opción de cámara
@@ -786,52 +764,26 @@
       console.warn("Cámara deshabilitada:", reason);
       openCamera.style.cursor = 'not-allowed';
       uploadOptions.classList.add('camera-disabled');
-      
-      // Cambiar el evento para mostrar un mensaje informativo
-      openCamera.onclick = () => {
-        Swal.fire({
-          icon: 'info',
-          title: 'Cámara no disponible',
-          text: reason,
-          confirmButtonText: 'Entendido'
-        });
-      };
-    }
-    
-    // Verificar permisos de cámara
-    async function checkCameraPermissions() {
-      try {
-        if (navigator.permissions && navigator.permissions.query) {
-          const permissions = await navigator.permissions.query({ name: 'camera' });
-          if (permissions.state === 'denied') {
-            cameraPermissionDenied = true;
-            disableCamera("Permiso de cámara denegado");
-          }
-          
-          permissions.onchange = () => {
-            cameraPermissionDenied = permissions.state === 'denied';
-            if (cameraPermissionDenied) {
-              disableCamera("Permiso de cámara denegado");
-            }
-          };
-        }
-      } catch (error) {
-        console.warn('No se pudo verificar el estado de los permisos:', error);
-      }
     }
     
     // Configurar event listeners
     function setupEventListeners() {
       // Subir desde galería
-      uploadGallery.addEventListener('click', () => fileInput.click());
-      fileInput.addEventListener('change', handleFileSelect);
+      uploadGallery.addEventListener('click', () => {
+        // Quitar el atributo capture para seleccionar desde archivos
+        fileInput.removeAttribute('capture');
+        fileInput.click();
+      });
       
-      // Abrir cámara (si está disponible)
-      if (!cameraPermissionDenied) {
-        openCamera.addEventListener('click', () => openCameraHandler(currentFacingMode));
-        switchCamera.addEventListener('click', switchCameraHandler);
-        captureBtn.addEventListener('click', captureImage);
-      }
+      // Abrir cámara
+      openCamera.addEventListener('click', () => {
+        // Agregar atributo capture para abrir cámara
+        fileInput.setAttribute('capture', 'environment');
+        fileInput.click();
+      });
+      
+      // Manejar selección de archivo
+      fileInput.addEventListener('change', handleFileSelect);
       
       // Analizar y cancelar
       analyzeBtn.addEventListener('click', analyzeImage);
@@ -882,102 +834,6 @@
       showPreview(URL.createObjectURL(file));
     }
     
-    // Abrir cámara
-    async function openCameraHandler(facingMode) {
-      // Si ya sabemos que los permisos están denegados, mostrar ayuda
-      if (cameraPermissionDenied) {
-        cameraContainer.style.display = 'block';
-        video.style.display = 'none';
-        permissionHelp.style.display = 'block';
-        switchCamera.style.display = 'none';
-        captureBtn.style.display = 'none';
-        return;
-      }
-      
-      try {
-        // Detener cámara anterior si existe
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-        }
-        
-        stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: facingMode }, 
-          audio: false 
-        });
-        
-        video.srcObject = stream;
-        cameraContainer.style.display = 'block';
-        video.style.display = 'block';
-        permissionHelp.style.display = 'none';
-        switchCamera.style.display = 'flex';
-        captureBtn.style.display = 'flex';
-        
-      } catch (error) {
-        console.error("Error accediendo a la cámara:", error);
-        cameraPermissionDenied = true;
-        disableCamera("Error de permisos de cámara");
-        
-        // Mostrar interfaz de ayuda para permisos
-        cameraContainer.style.display = 'block';
-        video.style.display = 'none';
-        permissionHelp.style.display = 'block';
-        switchCamera.style.display = 'none';
-        captureBtn.style.display = 'none';
-        
-        let errorMessage = "No se pudo acceder a la cámara.";
-        
-        if (error.name === 'NotAllowedError') {
-          errorMessage = "Permiso de cámara denegado. Por favor, habilita los permisos de cámara en tu navegador.";
-        } else if (error.name === 'NotFoundError') {
-          errorMessage = "No se encontró ninguna cámara disponible.";
-        } else if (error.name === 'NotReadableError') {
-          errorMessage = "No se puede acceder a la cámara. Puede que esté siendo usada por otra aplicación.";
-        }
-        
-        Swal.fire({
-          icon: 'error',
-          title: 'Error de cámara',
-          html: `
-            <p>${errorMessage}</p>
-            <div class="permission-help" style="text-align: left; margin: 15px 0;">
-              <h4><i class="fas fa-exclamation-triangle"></i> Solución de problemas:</h4>
-              <ol>
-                <li>Haz clic en el icono de cámara/bloqueo en la barra de direcciones</li>
-                <li>Configura los permisos de cámara para "Permitir"</li>
-                <li>Asegúrate de estar usando HTTPS</li>
-                <li>Recarga la página e intenta de nuevo</li>
-                <li>Verifica que ninguna extensión esté bloqueando la cámara</li>
-              </ol>
-            </div>
-          `,
-          confirmButtonText: 'Entendido'
-        });
-      }
-    }
-    
-    // Cambiar entre cámaras delantera/trasera
-    function switchCameraHandler() {
-      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-      openCameraHandler(currentFacingMode);
-    }
-    
-    // Capturar imagen desde cámara
-    function captureImage() {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      
-      // Detener la cámara
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-      }
-      
-      showPreview(canvas.toDataURL('image/png'));
-      cameraContainer.style.display = 'none';
-    }
-    
     // Mostrar vista previa
     function showPreview(src) {
       preview.src = src;
@@ -1008,20 +864,6 @@
       } finally {
         loading.style.display = 'none';
       }
-    }
-    
-    // 🔎 Clasificar con el modelo real (para uso en implementación real)
-    async function clasificarPlanta(imgElement) {
-      // Esta función se usaría con el modelo real
-      const predictions = await model.predict(imgElement);
-      console.log(predictions);
-
-      // Encontrar el resultado con más probabilidad
-      let mejor = predictions.reduce((prev, curr) =>
-        prev.probability > curr.probability ? prev : curr
-      );
-
-      return mejor.className.toLowerCase(); // ejemplo: "sauco"
     }
     
     // Mostrar resultado
@@ -1112,12 +954,6 @@
       previewContainer.style.display = 'none';
       cameraContainer.style.display = 'none';
       permissionHelp.style.display = 'none';
-      
-      // Detener cámara si está activa
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-      }
       
       // Restablecer sección de resultados
       plantInfo.style.display = 'none';
