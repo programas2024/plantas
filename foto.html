@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root {
-      --primary: #2e7d32;
+      --primary: #6af5ff;
       --primary-light: #4caf50;
       --secondary: #8bc34a;
       --accent: #ff9800;
@@ -419,6 +419,15 @@
       font-size: 0.9rem;
     }
     
+    .https-warning {
+      background: #ffebee;
+      border-left: 4px solid #f44336;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+      display: none;
+    }
+    
     @media (max-width: 768px) {
       .upload-options {
         grid-template-columns: 1fr;
@@ -474,6 +483,17 @@
     <div class="hero">
       <h1>Identificador de Plantas Medicinales</h1>
       <p>Descubre información sobre plantas medicinales y sus propiedades con solo una foto</p>
+    </div>
+    
+    <!-- Advertencia HTTPS -->
+    <div class="https-warning" id="httpsWarning">
+      <h4><i class="fas fa-exclamation-triangle"></i> Se requiere HTTPS para usar la cámara</h4>
+      <p>La cámara solo funciona en conexiones seguras (HTTPS). Para solucionar este problema:</p>
+      <ol>
+        <li>Si estás en localhost, la cámara debería funcionar</li>
+        <li>Si estás en un servidor, asegúrate de usar HTTPS</li>
+        <li>También puedes probar en un servidor como GitHub Pages, Netlify o Vercel</li>
+      </ol>
     </div>
     
     <div class="main-content">
@@ -679,10 +699,11 @@
     const closeSafireModal = document.getElementById('closeSafireModal');
     const notifyMeBtn = document.getElementById('notifyMeBtn');
     const permissionHelp = document.getElementById('permissionHelp');
+    const httpsWarning = document.getElementById('httpsWarning');
 
     let model;
     let stream = null;
-    let currentFacingMode = 'environment'; // Para alternar entre cámaras
+    let currentFacingMode = 'environment';
     let cameraPermissionDenied = false;
     let isSecureContext = window.isSecureContext;
 
@@ -717,15 +738,9 @@
     // 🚀 Cargar el modelo entrenado
     async function loadModel() {
       try {
-        // En una implementación real, aquí cargarías tu modelo
-        // model = await tmImage.load('model/model.json', 'model/metadata.json');
-        
         // Simulamos la carga del modelo con un retraso
         await new Promise(resolve => setTimeout(resolve, 1500));
         console.log("✅ Modelo cargado (simulado)");
-        
-        // Para propósitos de demostración, usaremos una identificación simulada
-        // En una aplicación real, usarías el modelo real como en tu código original
       } catch (error) {
         console.error("Error cargando el modelo:", error);
         Swal.fire({
@@ -741,12 +756,17 @@
       loadModel();
       checkCameraSupport();
       setupEventListeners();
+      
+      // Mostrar advertencia si no es HTTPS
+      if (!isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        httpsWarning.style.display = 'block';
+      }
     }
     
     // Verificar compatibilidad con cámara
     function checkCameraSupport() {
       // Verificar si estamos en un contexto seguro (HTTPS)
-      if (!isSecureContext) {
+      if (!isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         disableCamera("La cámara requiere HTTPS");
         return;
       }
@@ -926,6 +946,7 @@
                 <li>Configura los permisos de cámara para "Permitir"</li>
                 <li>Asegúrate de estar usando HTTPS</li>
                 <li>Recarga la página e intenta de nuevo</li>
+                <li>Verifica que ninguna extensión esté bloqueando la cámara</li>
               </ol>
             </div>
           `,
@@ -971,9 +992,6 @@
       try {
         // Simulamos el análisis con un retraso
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // En una aplicación real, usarías:
-        // const plantaId = await clasificarPlanta(preview);
         
         // Para esta demo, seleccionamos una planta aleatoria
         const plantKeys = Object.keys(plantasDB);
