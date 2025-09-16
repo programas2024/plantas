@@ -12,9 +12,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
- <style>
+  <style>
     :root {
-      --primary: #00ff0d;
+      --primary: #49cc50;
       --primary-light: #4caf50;
       --secondary: #8bc34a;
       --accent: #ff9800;
@@ -24,7 +24,6 @@
       --text-light: #757575;
       --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
-    
     
     * {
       margin: 0;
@@ -42,7 +41,7 @@
     }
     
     .container {
-      max-width: 1200px;
+      max-width: 1500px;
       margin: 0 auto;
     }
     
@@ -51,7 +50,7 @@
       color: white;
       padding: 15px 0;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-radius: 15px;
+      
       margin-bottom: 30px;
     }
     
@@ -383,6 +382,16 @@
       gap: 8px;
     }
     
+    .camera-status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -471,6 +480,10 @@
           
           <div class="camera-container" id="cameraContainer">
             <video id="video" autoplay playsinline></video>
+            <div class="camera-status" id="cameraStatus">
+              <i class="fas fa-camera"></i>
+              <span id="cameraType">Cámara trasera activada</span>
+            </div>
             <div class="camera-controls">
               <button class="camera-btn btn-accent" id="captureBtn">
                 <i class="fas fa-camera"></i> Capturar
@@ -492,6 +505,7 @@
               <li>Configura los permisos de cámara para "Permitir"</li>
               <li>Recarga la página e intenta de nuevo</li>
             </ol>
+            <p style="margin-top: 10px;"><strong>Nota:</strong> Algunos navegadores pueden requerir HTTPS para acceder a la cámara.</p>
           </div>
           
           <div id="preview-container">
@@ -631,10 +645,14 @@
     const aboutBtn = document.getElementById('aboutBtn');
     const safireBtn = document.getElementById('safireBtn');
     const permissionHelp = document.getElementById('permissionHelp');
+    const cameraStatus = document.getElementById('cameraStatus');
+    const cameraType = document.getElementById('cameraType');
 
     let model;
     let stream = null;
     let currentFacingMode = 'environment'; // 'environment' para cámara trasera, 'user' para frontal
+    let availableCameras = [];
+    let currentCameraIndex = 0;
 
     // 📚 Base de datos de plantas
     const plantasDB = {
@@ -700,6 +718,19 @@
     function init() {
       loadModel();
       setupEventListeners();
+      checkCameraSupport();
+    }
+    
+    // Verificar soporte de cámara
+    function checkCameraSupport() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Navegador no compatible',
+          text: 'Tu navegador no soporta el acceso a la cámara. Por favor, actualiza tu navegador o usa uno más moderno.',
+        });
+        openCamera.style.display = 'none';
+      }
     }
     
     // Configurar event listeners
@@ -765,6 +796,17 @@
       });
     }
     
+    // Obtener dispositivos de cámara disponibles
+    async function getCameraDevices() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        return devices.filter(device => device.kind === 'videoinput');
+      } catch (error) {
+        console.error('Error enumerando dispositivos:', error);
+        return [];
+      }
+    }
+    
     // Abrir cámara
     async function openCameraHandler() {
       try {
@@ -773,22 +815,38 @@
           stream.getTracks().forEach(track => track.stop());
         }
         
-        // Solicitar acceso a la cámara
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: currentFacingMode },
+        // Obtener cámaras disponibles
+        availableCameras = await getCameraDevices();
+        
+        if (availableCameras.length === 0) {
+          throw new Error('No se encontraron cámaras disponibles');
+        }
+        
+        // Configurar para usar la cámara trasera por defecto si está disponible
+        const constraints = {
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
           audio: false
-        });
+        };
+        
+        // Solicitar acceso a la cámara
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         // Mostrar video en el elemento video
         video.srcObject = stream;
         cameraContainer.style.display = 'block';
         permissionHelp.style.display = 'none';
         
+        // Actualizar estado de la cámara
+        updateCameraStatus();
+        
       } catch (error) {
         console.error("Error accediendo a la cámara:", error);
         permissionHelp.style.display = 'block';
         
-        // Mostrar mensaje específico según el tipo de error
         let errorMessage = '';
         if (error.name === 'NotAllowedError') {
           errorMessage = `
@@ -830,10 +888,51 @@
       }
     }
     
+    // Actualizar estado de la cámara en la interfaz
+    function updateCameraStatus() {
+      cameraType.textContent = currentFacingMode === 'environment' 
+        ? 'Cámara trasera activada' 
+        : 'Cámara frontal activada';
+    }
+    
     // Cambiar entre cámaras frontal y trasera
     async function switchCamera() {
-      currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-      await openCameraHandler();
+      try {
+        // Detener stream actual
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+        
+        // Cambiar modo de cámara
+        currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+        
+        // Configurar nuevas restricciones
+        const constraints = {
+          video: {
+            facingMode: currentFacingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        };
+        
+        // Obtener nuevo stream
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        // Mostrar video en el elemento video
+        video.srcObject = stream;
+        
+        // Actualizar estado de la cámara
+        updateCameraStatus();
+        
+      } catch (error) {
+        console.error("Error cambiando de cámara:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo cambiar de cámara. Intenta de nuevo.'
+        });
+      }
     }
     
     // Cerrar cámara
@@ -1001,35 +1100,8 @@
       resultPlaceholder.style.display = 'block';
     }
     
-    // Verificar si el navegador es compatible
-    function checkBrowserCompatibility() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Navegador no compatible',
-          html: `
-            <p>Tu navegador no soporta el acceso a la cámara o está desactualizado.</p>
-            <p>Te recomendamos usar:</p>
-            <ul style="text-align: left;">
-              <li>Chrome (versión 60+)</li>
-              <li>Firefox (versión 55+)</li>
-              <li>Safari (versión 11+)</li>
-              <li>Edge (versión 16+)</li>
-            </ul>
-          `,
-          confirmButtonText: 'Entendido'
-        });
-        return false;
-      }
-      return true;
-    }
-    
     // Inicializar cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', function() {
-      if (checkBrowserCompatibility()) {
-        init();
-      }
-    });
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
