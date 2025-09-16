@@ -1274,7 +1274,7 @@
         
          /* Estilos para las imágenes en SweetAlert */
         .swal-custom-image {
-            max-width: 100px;
+            max-width: 220px;
             margin: 0 auto 15px;
             display: block;
         }
@@ -2481,6 +2481,14 @@
                 }
             });
         }
+
+         document.addEventListener('DOMContentLoaded', function() {
+            // Botón de cámara que redirige a foto.html
+            const cameraBtn = document.getElementById('cameraBtn');
+            cameraBtn.addEventListener('click', function() {
+                window.location.href = 'foto.html';
+            });
+        });
 </script>
 </body>
 </html>
