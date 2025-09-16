@@ -12,9 +12,9 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
+ <style>
     :root {
-      --primary: #49cc50;
+      --primary: #00ff0d;
       --primary-light: #4caf50;
       --secondary: #8bc34a;
       --accent: #ff9800;
@@ -788,26 +788,52 @@
         console.error("Error accediendo a la cámara:", error);
         permissionHelp.style.display = 'block';
         
-        Swal.fire({
-          icon: 'error',
-          title: 'Error de cámara',
-          html: `
+        // Mostrar mensaje específico según el tipo de error
+        let errorMessage = '';
+        if (error.name === 'NotAllowedError') {
+          errorMessage = `
+            <p>Has denegado los permisos de cámara o el sistema ha bloqueado el acceso.</p>
+            <p>Para solucionarlo:</p>
+            <ol style="text-align: left;">
+              <li>Haz clic en el icono de candado o cámara en la barra de direcciones</li>
+              <li>Configura los permisos de cámara para "Permitir"</li>
+              <li>Recarga la página e intenta de nuevo</li>
+            </ol>
+          `;
+        } else if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
+          errorMessage = `
+            <p>No se ha encontrado una cámara adecuada o está siendo utilizada por otra aplicación.</p>
+            <p>Para solucionarlo:</p>
+            <ol style="text-align: left;">
+              <li>Asegúrate de que tu cámara no esté siendo utilizada por otra aplicación</li>
+              <li>Verifica que la cámara esté conectada y funcionando correctamente</li>
+              <li>Intenta con un navegador diferente si el problema persiste</li>
+            </ol>
+          `;
+        } else {
+          errorMessage = `
             <p>No se pudo acceder a la cámara. Por favor:</p>
             <ol style="text-align: left;">
               <li>Asegúrate de permitir el acceso a la cámara</li>
               <li>Verifica que tu cámara esté conectada y funcionando</li>
               <li>Intenta usar otro navegador si el problema persiste</li>
             </ol>
-          `,
+          `;
+        }
+        
+        Swal.fire({
+          icon: 'error',
+          title: 'Error de cámara',
+          html: errorMessage,
           confirmButtonText: 'Entendido'
         });
       }
     }
     
     // Cambiar entre cámaras frontal y trasera
-    function switchCamera() {
+    async function switchCamera() {
       currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
-      openCameraHandler();
+      await openCameraHandler();
     }
     
     // Cerrar cámara
@@ -817,6 +843,7 @@
         stream = null;
       }
       cameraContainer.style.display = 'none';
+      permissionHelp.style.display = 'none';
     }
     
     // Capturar imagen desde la cámara
@@ -974,8 +1001,35 @@
       resultPlaceholder.style.display = 'block';
     }
     
+    // Verificar si el navegador es compatible
+    function checkBrowserCompatibility() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Navegador no compatible',
+          html: `
+            <p>Tu navegador no soporta el acceso a la cámara o está desactualizado.</p>
+            <p>Te recomendamos usar:</p>
+            <ul style="text-align: left;">
+              <li>Chrome (versión 60+)</li>
+              <li>Firefox (versión 55+)</li>
+              <li>Safari (versión 11+)</li>
+              <li>Edge (versión 16+)</li>
+            </ul>
+          `,
+          confirmButtonText: 'Entendido'
+        });
+        return false;
+      }
+      return true;
+    }
+    
     // Inicializar cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function() {
+      if (checkBrowserCompatibility()) {
+        init();
+      }
+    });
   </script>
 </body>
 </html>
